@@ -1,4 +1,7 @@
 
+# C++ objects
+*.o
+harbour-sailcon
 
 # Qt-es
 
