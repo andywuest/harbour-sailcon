@@ -1,0 +1,15 @@
+* Konferenz - pully Update, wenn schon in der Liste (nicht add) - sowohl bei der Konferenzauswahl als auch in uebersicht
+* bei einem Zweiten download in der Konferenzauswahl kommt direkt die ConferenceNotification obwohl request noch nicht fertig (alte notification!)
+
+
+
+* download of conference - makes it immediately the global model
+* [DONE] wenn es nur eine konferenz gibt (nach download) sollte diese direkt die aktive sein
+* [DONE] Cover mit Logo als background fuer aktive konferenz - erste version koennte noch besser sein
+* nächste Talks anzeigen.
+* suche in der conferences database ob heute eine konferenz aktiv ist (wenn man keine aktive konferenz hat) - sonst prüfung ob die aktuelle konferenz heute ist.
+-> wenn nicht entsprechenden hinweis, dass diese noch nicht begonnen - oder vorbei ist.
+*  sprache des systems verwenden, wenn die nicht vorhanden ist -> welche nehmen
+* [DONE] reset -> db clearen und aktuelle konferenzliste aktualisieren
+* social media icons via repeater darstellen -> klickbar machen so dass die url direkt im browser aufgeht
+* social media links as array mit json content liefert -> repeater
