@@ -105,6 +105,15 @@ Page {
          }
     }
 
+    ConferenceDownloadProgressIndicator {
+                id: favoritesLoadingIndicator
+                visible: false
+                Behavior on opacity { NumberAnimation {} }
+                opacity: !favoritesLoadingIndicator.visbile ? 1 : 0
+                height: parent.height
+                width: parent.width
+    }
+
     SilicaListView {
         id: listView
 
@@ -129,8 +138,15 @@ Page {
             menu: contextMenu
 
             function performDownload() {
-
                 var data = listView.model.get(index)
+
+                favoritesLoadingIndicator.conferenceId = data.id;
+                favoritesLoadingIndicator.conferenceYear = data.year;
+                favoritesLoadingIndicator.visible = true;
+
+                if (1 == 1) {
+                    return;
+                }
 
                 var eTag = Database.getETagForConferenceId(data.id)
 
@@ -520,7 +536,7 @@ Page {
         Component.onCompleted: {
             var conferenceListManager = Utils2.createConferenceListManager()
             var persistedConferenceIds = Database.getPersistedConferenceIds()
-            conferenceListManager.fetchConferences(
+            conferenceListManager.fetchConferences(Constants.CONFERENCES_URL,
                         function (status, sortedConferences) {
                             console.log("conferences : " + sortedConferences)
                             console.log("status : " + status)
