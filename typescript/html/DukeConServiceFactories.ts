@@ -13,8 +13,8 @@ function createConferenceListManager() {
     return new ConferenceListManager();
 };
 
-function createUrlService() {
-    return new UrlService();
+function createUrlService(conferencesUrl: string, single: boolean) {
+    return new UrlService(conferencesUrl, single);
 };
 
 function createDownloadService() {
