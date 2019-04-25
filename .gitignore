@@ -3,8 +3,10 @@
 *.o
 harbour-sailcon
 
-# Qt-es
+# misc
+*.list
 
+# Qt-es
 *.pro.user
 *.moc
 Makefile*
