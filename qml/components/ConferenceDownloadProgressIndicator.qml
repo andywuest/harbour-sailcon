@@ -65,6 +65,11 @@ Item {
         }
     }
 
+    Image  {
+        id: img
+    }
+
+
     Canvas {
         id: speakerImageCanvas
         width: 300;
@@ -199,6 +204,9 @@ Item {
                     result = qsTr("Confenrence Data unchanged.")
                 }
 
+
+
+
                 // trigger download of conferenceLogo and speaker images
                 // runningDownloads.push('logo');
                 runningDownloads.push('speakers');
@@ -288,6 +296,72 @@ Item {
         // busyIndicator.opacity = 1;
     }
 
+    function fetchImages(photoIdUrls, downloadService, index, numberOfImages) {
+        if (photoIdUrls.length === 0) {
+            checkDownloadsFinished();
+            return;
+        }
+
+        var currentPhotoId = photoIdUrls.pop();
+
+        var resourceId = currentPhotoId.substring(currentPhotoId.lastIndexOf("/") + 1);
+
+        var downloadData = Utils2.createDownloadData();
+        downloadData.url = currentPhotoId;
+        downloadData.contentType = undefined; // we do not know the type of image
+        downloadData.eTag = null;
+
+        console.log("fetching image : "+ currentPhotoId);
+
+        // TODO try to load etag from db before loading -> so we can call the service with an etag
+
+        var downloadConferenceData = function(returnCode, httpRequest, rawString) {
+            var result = null;
+
+            if (returnCode === Constants.RETURN_CODE_OK || returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
+                // ok -> data was updated -> so we persist it
+                var detailedConferenceDataString = "";
+                if (returnCode === Constants.RETURN_CODE_OK) {
+                    var image = 'data:image/png;base64,' + Constants.base64Encode(rawString); // TODO move to CPP code instaed of via JS
+                    img.source = image;
+                    var responseETag = httpRequest.getResponseHeader("ETag");
+
+                    // TODO erster parameter muss das data object der akt konferenz sein
+                    Database.persistConferenceImages(GlobalDataModel.conferenceJsonData, 'speakerImage', image, null, responseETag, resourceId);
+
+                    data.isPersisted = true;
+                } else if (returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
+                    // TODO reload from DB
+                    console.log("image not change !");
+                } else if (returnCode === Constants.RETURN_CODE_ERROR) {
+                    // TODO show message
+                    checkDownloadsFinished();
+                }
+
+
+                // call recursively
+                fetchImages(photoIdUrls, downloadService, index + 1, numberOfImages);
+
+                // trigger download of conferenceLogo and speaker images
+                // runningDownloads.push('logo');
+                // runningDownloads.push('speakers');
+                // performImageDownload(data, runningDownloads);
+                // performSpeakerImagesDownload(data, detailedConferenceDataString, runningDownloads);
+            } else if (returnCode === Constants.RETURN_CODE_ERROR) {
+                //result = qsTr("Connection error (HTTP:" + httpRequest.status + ")");
+                // hide loading indicator again
+                //closeIndicatorTimer.start();
+            }
+
+            //conferenceNotification.show(result)
+        };
+
+        loadingLabel4.text = index + " / " + numberOfImages;
+        downloadService.executeBinary(downloadData, downloadConferenceData);
+
+    }
+
+
     function performSpeakerImagesDownload(data, detailedConferenceDataString, downloads) {
         var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
         var baseUrl = urlService.getSpeakerImagesUrl(data);
@@ -301,18 +375,39 @@ Item {
 
         loadingLabel4.text = 0 + " / " + photoIdUrls.length;
 
+
+        // https://stackoverflow.com/questions/53888158/download-and-convert-image-to-data-uri-in-qml
+
+
+        var downloadService = Utils2.createDownloadService();
+        fetchImages(photoIdUrls, downloadService, 1, photoIdUrls.length);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // speakerImagesLabel.visible = true;
 
-        speakerImageCanvas.visible = false; // true to debug
-        speakerImageCanvas.currentIndex = 0;
-        speakerImageCanvas.imagefiles = photoIdUrls;
-        speakerImageCanvas.imagefile = photoIdUrls[0];
+//        speakerImageCanvas.visible = false; // true to debug
+//        speakerImageCanvas.currentIndex = 0;
+//        speakerImageCanvas.imagefiles = photoIdUrls;
+//        speakerImageCanvas.imagefile = photoIdUrls[0];
 
-        // by setting the loadImage with a file we trigger the downloading via the canvas!!
-        // the canvas will check if there are more images to download via the imagefiles array given.
-        console.log(" load image trigger : " + speakerImageCanvas.imagefile);
-        console.log("image loaded: " + speakerImageCanvas.isImageLoaded(speakerImageCanvas.imagefile));
-        speakerImageCanvas.loadImage(speakerImageCanvas.imagefile);
+//        // by setting the loadImage with a file we trigger the downloading via the canvas!!
+//        // the canvas will check if there are more images to download via the imagefiles array given.
+//        console.log(" load image trigger : " + speakerImageCanvas.imagefile);
+//        console.log("image loaded: " + speakerImageCanvas.isImageLoaded(speakerImageCanvas.imagefile));
+//        speakerImageCanvas.loadImage(speakerImageCanvas.imagefile);
     }
 
     onVisibleChanged: {
