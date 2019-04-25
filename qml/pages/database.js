@@ -132,6 +132,49 @@ function persistConferenceData(data, newContent, eTag, responseETag) {
     return result
 }
 
+function deleteConferenceFromDatabase(conferenceId) {
+    try {
+        var db = Database.getOpenDatabase()
+        db.transaction(function (tx) {
+            var result = tx.executeSql(
+                        'DELETE FROM conference WHERE id = ?',
+                        [conferenceId])
+            console.log("deleted conference with id : " + conferenceId)
+        })
+    } catch (err) {
+        console.log("Error deleting conference in database: " + err)
+    }
+}
+
+function loadConferenceFromDatabase(conferenceId) {
+    var result = {};
+    try {
+        var db = Database.getOpenDatabase()
+        db.transaction(function (tx) {
+            var dbResult = tx.executeSql(
+                        'SELECT id,name,year,url,homeUrl,startDate,endDate,state,content FROM conference WHERE id = ?',
+                        [conferenceId])
+            // create same object as from json response
+            if (dbResult.rows.length === 1) {
+                var resultRow = dbResult.rows.item(0);
+                result.id = resultRow.id;
+                result.year = resultRow.year;
+                result.name = resultRow.name;
+                result.startDate = resultRow.startDate;
+                result.endDate = resultRow.endDate;
+                result.url = resultRow.url;
+                result.content = resultRow.content;
+                console.log("loading conference data from database for conference with id : " + conferenceId);
+            } else {
+                console.log("failed loading conference data from database for conference with id : " + conferenceId);
+            }
+        })
+    } catch (err) {
+        console.log("Error deleting conference in database: " + err)
+    }
+    return result;
+}
+
 // persists the conference images - either insert or update
 function persistConferenceImages(data, resourceType, newContent, eTag, responseETag, resourceId) {
     var result = ""
