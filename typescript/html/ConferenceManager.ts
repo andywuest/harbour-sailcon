@@ -210,10 +210,17 @@ class ConferenceManager {
 
     getSpeakerPhotoIdUrls(baseUrl: string): Array<string> {
         let speakerPhotoIds = this.conference.speakers
-            .filter(speaker => speaker.photoId != null)
-            .filter(speaker => speaker.photoId != "")
-            .map(speaker => baseUrl + speaker.photoId);
-        return speakerPhotoIds;
+            .filter(speaker => speaker.photoId !== undefined)
+            .filter(speaker => speaker.photoId !== null)
+            .filter(speaker => speaker.photoId !== "")
+            .map(speaker => baseUrl + speaker.photoId)
+            // filter duplicates -> logic will stop downloading 
+            // if we download one image twice!
+            .filter(function (elem, index, self) {
+                return index === self.indexOf(elem);
+            });
+
+            return speakerPhotoIds;
     }
 
     getEventById(eventId: string): EventTalk {
