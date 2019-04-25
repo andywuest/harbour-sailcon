@@ -9,5 +9,9 @@ curl http://localhost:8083/rest/conferences
 curl http://localhost:8083/rest/conferences/javaland2016
 curl http://localhost:8083/rest/speaker/images
 
+# image-resources.json
+curl http://localhost:8083/rest/image-resources/javaland/2016/
+# 
+curl http://localhost:8083/rest/init/javaland/2016/
 
 
