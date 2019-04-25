@@ -48,11 +48,13 @@ Page {
         id: conferenceNotification
     }
 
+    /*
     Label {
         id: speakerImagesLabel
         visible: false
         text: "?"
     }
+    */
 
     Canvas {
         id: speakerImageCanvas
@@ -97,7 +99,7 @@ Page {
                 if ((currentIndex + 1) < imagefiles.length) {
                     currentIndex++;
                     imagefile = imagefiles[currentIndex];
-                    speakerImagesLabel.text = "Loading image " + currentIndex + " of " + imagefiles.length;
+//                    speakerImagesLabel.text = "Loading image " + currentIndex + " of " + imagefiles.length;
                     loadImage(imagefile);
                     console.log("Loading image " + currentIndex + " of " + imagefiles.length);
                 }
@@ -140,8 +142,9 @@ Page {
             function performDownload() {
                 var data = listView.model.get(index)
 
-                favoritesLoadingIndicator.conferenceId = data.id;
-                favoritesLoadingIndicator.conferenceYear = data.year;
+//                favoritesLoadingIndicator.conferenceId = data.id;
+//                favoritesLoadingIndicator.conferenceYear = data.year;
+                favoritesLoadingIndicator.confData = data;
                 favoritesLoadingIndicator.visible = true;
 
                 if (1 == 1) {
@@ -150,7 +153,7 @@ Page {
 
                 var eTag = Database.getETagForConferenceId(data.id)
 
-                var urlService = Utils2.createUrlService();
+                var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
                 var dataUrl = urlService.getConferenceDataUrl(data);
                 var imagesUrl = urlService.getConferenceImagesUrl(data);
 
@@ -263,7 +266,7 @@ Page {
             }
 
             function performImageDownload(data, downloads) {
-                var urlService = Utils2.createUrlService();
+                var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
                 var url = urlService.getConferenceImagesUrl(data);
                 // TODO try to fetch etag for images
                 // var eTag = Database.getETagForConferenceId(data.id)
@@ -349,7 +352,7 @@ Page {
             }
 
             function performSpeakerImagesDownload(data, detailedConferenceDataString, downloads) {
-                var urlService = Utils2.createUrlService();
+                var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
                 var baseUrl = urlService.getSpeakerImagesUrl(data);
 
                 var detailedConferenceData = JSON.parse(detailedConferenceDataString);
@@ -373,9 +376,10 @@ Page {
 
                 var manager = Utils2.createConferenceManager(detailedConferenceData);
                 var photoIdUrls = manager.getSpeakerPhotoIdUrls(baseUrl);
+
                 console.log(photoIdUrls)
 
-                speakerImagesLabel.visible = true;
+//                speakerImagesLabel.visible = true;
 
                 speakerImageCanvas.visible = false; // true to debug
                 speakerImageCanvas.imagefiles = photoIdUrls;
@@ -479,9 +483,13 @@ Page {
                 remorseAction("Downloading Data", function () {
                     //busyIndicator.visible = true;
                     // busyIndicator.opacity = 0;
+
+
+                    /*
                     busyIndicator2.running = true
                     busyIndicator2.opacity = 1
                     opacity = 0.4
+                    */
 
                     console.log("showBusyIndicator")
 
