@@ -194,10 +194,11 @@ var ConferenceListManager = /** @class */ (function () {
     ConferenceListManager.prototype.setConferences = function (conferences) {
         this.conferences = conferences;
     };
-    ConferenceListManager.prototype.fetchConferences = function (callback) {
+    ConferenceListManager.prototype.fetchConferences = function (url, callback) {
         var _this = this;
         var httpRequest = new XMLHttpRequest();
-        httpRequest.open('GET', 'https://latest.dukecon.org/conferences');
+        console.log("conference Url : " + url);
+        httpRequest.open('GET', url);
         httpRequest.setRequestHeader('Content-Type', 'application/json;charset=utf-8');
         httpRequest.timeout = 5000; // 5 seconds timeout
         httpRequest.onreadystatechange = function () {
@@ -408,9 +409,13 @@ var ConferenceManager = /** @class */ (function () {
     };
     ConferenceManager.prototype.getSpeakerPhotoIdUrls = function (baseUrl) {
         var speakerPhotoIds = this.conference.speakers
-            .filter(function (speaker) { return speaker.photoId != null; })
-            .filter(function (speaker) { return speaker.photoId != ""; })
-            .map(function (speaker) { return baseUrl + speaker.photoId; });
+            .filter(function (speaker) { return speaker.photoId !== undefined; })
+            .filter(function (speaker) { return speaker.photoId !== null; })
+            .filter(function (speaker) { return speaker.photoId !== ""; })
+            .map(function (speaker) { return baseUrl + speaker.photoId; })
+            .filter(function (elem, index, self) {
+            return index === self.indexOf(elem);
+        });
         return speakerPhotoIds;
     };
     ConferenceManager.prototype.getEventById = function (eventId) {
@@ -550,8 +555,8 @@ function createConferenceListManager() {
     return new ConferenceListManager();
 }
 ;
-function createUrlService() {
-    return new UrlService();
+function createUrlService(conferencesUrl, single) {
+    return new UrlService(conferencesUrl, single);
 }
 ;
 function createDownloadService() {
@@ -561,33 +566,59 @@ function createDownloadData() {
     return new DownloadData();
 }
 var UrlService = /** @class */ (function () {
-    function UrlService() {
+    function UrlService(conferencesUrl, single) {
+        this.conferencesUrl = conferencesUrl;
+        this.single = single;
     }
     UrlService.prototype.getConferenceDataUrl = function (conferenceData) {
         // https://latest.dukecon.org/jfs/2017/rest/conferences/jfs2017
-        //        let url: string = "https://latest.dukecon.org/";
-        //        url += conferenceData.id.replace(new RegExp("\\d", "g"), "") + "/";  // add id
-        //        url += conferenceData.year + "/";
-        var url = this.getBasePath(conferenceData) + "rest/conferences/" + conferenceData.id;
-        console.log("Conference data url is : " + url);
-        return url;
+        // http://localhost:8083/rest/conferences/javaland2016
+        var urlPrefix = this.getBasePath(conferenceData);
+        if (this.single) {
+            var url = urlPrefix + "/" + conferenceData.id;
+            console.log("Conference data url is : " + url);
+            return url;
+        }
+        else {
+            var url = urlPrefix + "rest/conferences/" + conferenceData.id;
+            console.log("Conference data url is : " + url);
+            return url;
+        }
     };
     UrlService.prototype.getConferenceImagesUrl = function (conferenceData) {
         // https://latest.dukecon.org/javaland/2018/rest/image-resources.json
-        var url = this.getBasePath(conferenceData) + "rest/image-resources.json";
-        console.log("Conference images url is : " + url);
-        return url;
+        // http://localhost:8083/rest/image-resources/javaland/2016/
+        if (this.single) {
+            var url = this.conferencesUrl.replace(new RegExp("/conferences", "g"), "");
+            url += "/image-resources/" + conferenceData.id + "/" + conferenceData.year + "/";
+            return url;
+        }
+        else {
+            var url = this.getBasePath(conferenceData) + "rest/image-resources.json";
+            console.log("Conference images url is : " + url);
+            return url;
+        }
     };
     UrlService.prototype.getSpeakerImagesUrl = function (conferenceData) {
         // https://programm.javaland.eu/2019/rest/speaker/images/d15f234b7a5fe0b72b5a3e21d72a7445
-        var url = this.getBasePath(conferenceData) + "rest/speaker/images/";
-        console.log("Speaker images base url is : " + url);
-        return url;
+        // http://localhost:8083/rest/speaker/images
+        if (this.single) {
+            var url = this.conferencesUrl.replace(new RegExp("/conferences", "g"), "");
+            url += "/speaker/images/";
+            return url;
+        }
+        else {
+            var url = this.getBasePath(conferenceData) + "rest/speaker/images/";
+            console.log("Speaker images base url is : " + url);
+            return url;
+        }
     };
     UrlService.prototype.getBasePath = function (conferenceData) {
-        var url = "https://latest.dukecon.org/";
-        url += conferenceData.id.replace(new RegExp("\\d", "g"), "") + "/"; // add id
-        url += conferenceData.year + "/";
+        var url = this.conferencesUrl;
+        if (!this.single) {
+            url += conferenceData.id.replace(new RegExp("\\d", "g"), "") + "/"; // add id
+            url += conferenceData.year + "/";
+        }
         return url;
     };
     return UrlService;
