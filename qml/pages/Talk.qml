@@ -216,7 +216,7 @@ Page {
                 speaker1.labelSpeakerCompany = manager.trimToEmpty(speakers[0].company);
                 speaker1.labelSpeakerBio = manager.trimToEmpty(speakers[0].bio);
                 if (speakers[0].photoId !== undefined) {
-                  speaker1.imageSpeaker = Database.loadConferenceImages(GlobalDataModel.conferenceJsonData.id, speakers[0].photoId);
+                  speaker1.imageSpeaker = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, speakers[0].photoId).content;
                 } else {
                     speaker1.imageSpeaker = speaker1.defaultSpeakerImage;
                 }
@@ -240,7 +240,7 @@ Page {
                 speaker2.labelSpeakerCompany = manager.trimToEmpty(speakers[1].company);
                 speaker2.labelSpeakerBio = manager.trimToEmpty(speakers[1].bio);
                 if (speakers[1].photoId !== undefined) {
-                   speaker2.imageSpeaker = Database.loadConferenceImages(GlobalDataModel.conferenceJsonData.id, speakers[1].photoId);
+                   speaker2.imageSpeaker = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, speakers[1].photoId).content;
                 } else {
                     speaker2.imageSpeaker = speaker2.defaultSpeakerImage;
                 }
@@ -268,7 +268,7 @@ Page {
 
 //            console.log("speaker Text : " + speakerText);
 
-//            var image = Database.loadConferenceImages(GlobalDataModel.conferenceJsonData.id, speakers[0].photoId);
+//            var image = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, speakers[0].photoId).content;
 //            imageSpeaker.source = image;
 
 //            eventSpeaker = speakerText;

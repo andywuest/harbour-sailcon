@@ -18,6 +18,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
+import "../components"
 
 // QTBUG-34418
 import "."
@@ -26,6 +27,7 @@ import "logic.js" as Logic
 import "utils2.js" as Utils2
 import "constants.js" as Constants
 import "database.js" as Database
+
 
 Page {
     id: page
@@ -40,6 +42,13 @@ Page {
     onExited: {
         console.log("first page left")
     }
+
+
+    Image {
+            id: img
+        }
+
+//    property bool indicatorVisible : true;
 
     // To enable PullDownMenu, place our content in a SilicaFlickable
     SilicaFlickable {
@@ -85,8 +94,28 @@ Page {
                 text: qsTr("Settings")
                 onClicked: pageStack.push(Qt.resolvedUrl("Settings.qml"))
             }
+            MenuItem {
+                text: qsTr("Indicator")
+                onClicked: {
+                    //indicatorVisible = true;
+                    favoritesLoadingIndicator.visible = true;
+                }
+            }
+
+
 
         }
+
+        ConferenceDownloadProgressIndicator {
+                    id: favoritesLoadingIndicator
+                    visible: false
+                    Behavior on opacity { NumberAnimation {} }
+                    opacity: !favoritesLoadingIndicator.visbile ? 1 : 0
+                    height: parent.height
+                    width: parent.width
+        }
+
+
 
         // Tell SilicaFlickable the height of its content.
         //contentHeight: column.height
@@ -134,7 +163,7 @@ Page {
 
                 Label {
                     x: Theme.paddingLarge
-                    text: label
+                    text: "" + label // tmp workaround for no label
                     anchors.verticalCenter: parent.verticalCenter
                     color: delegate.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
@@ -192,7 +221,12 @@ Page {
                         MenuItem {
                             visible: true
                             text: qsTr("Update")
-                            onClicked: console.log("update")
+                            onClicked: {
+                                console.log("update")
+                                favoritesLoadingIndicator.conferenceId = listView.model.get(index).name;
+                                favoritesLoadingIndicator.conferenceYear = "2017";
+                                favoritesLoadingIndicator.visible = true;
+                            }
                         }
                     }
                 }
@@ -209,8 +243,7 @@ Page {
 
                 function deleteConference(index) {
                     console.log("deleting the attribute with index " + index)
-                    flickable.deleteConferenceFromDatabase(listView.model.get(
-                                                               index).name)
+                    Database.deleteConferenceFromDatabase(listView.model.get(index).name)
                     flickable.reloadModelFromDatabase(listView.model)
                 }
 

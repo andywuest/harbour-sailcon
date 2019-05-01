@@ -94,7 +94,7 @@ Page {
                 // extract the photoId from the url string
                 var resourceId = imagefile.substring(imagefile.lastIndexOf("/") + 1);
                 // no etags when loading via canvas
-                var result = Database.persistConferenceImages(GlobalDataModel.conferenceJsonData, 'speakerImage', dataUrl, null, null, resourceId);
+                var result = Database.persistConferenceImage(GlobalDataModel.conferenceJsonData.id, 'speakerImage', dataUrl, null, resourceId);
                 console.log("result is : " + result);
                 if ((currentIndex + 1) < imagefiles.length) {
                     currentIndex++;
@@ -302,8 +302,8 @@ Page {
 
 //                            console.log("data model is now " + GlobalDataModel.conferenceJsonData)
 
-                            result = Database.persistConferenceImages(
-                                        data, 'conferenceImage', request2.responseText, eTag,
+                            result = Database.persistConferenceImage(
+                                        data.id, 'conferenceImage', request2.responseText,
                                         responseETag, 'logo')
                             data.isPersisted = true
                          //   performSpeakerImagesDownload(data);
@@ -436,8 +436,8 @@ Page {
 
 ////                            console.log("data model is now " + GlobalDataModel.conferenceJsonData)
 
-//                            result = Database.persistConferenceImages(
-//                                        data, request2.responseText, eTag,
+//                            result = Database.persistConferenceImage(
+//                                        data.id, request2.responseText,
 //                                        responseETag, 'logo')
 //                            data.isPersisted = true
 //                        } else if (request2.status

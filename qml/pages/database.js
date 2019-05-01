@@ -34,7 +34,8 @@ function initApplicationTables() {
                         'CREATE TABLE IF NOT EXISTS talk'
                         + ' (talkId INTEGER NOT NULL, favorite BOOLEAN NOT NULL DEFAULT false, rated BOOLEAN NOT NULL DEFAULT false, rating INTEGER)')
             tx.executeSql(
-                        'CREATE TABLE IF NOT EXISTS conference_resources (id INTEGER PRIMARY KEY ASC, conferenceId text, resourceType text, resourceId text, etag text, content text)')
+                        'CREATE TABLE IF NOT EXISTS conference_resources'
+                        + ' (conferenceId text, resourceId text, resourceType text, etag text, content text, PRIMARY KEY (conferenceId, resourceId))')
         })
     } catch (err) {
         console.log("Error creating tables for application in database : " + err)
@@ -176,69 +177,50 @@ function loadConferenceFromDatabase(conferenceId) {
 }
 
 // persists the conference images - either insert or update
-function persistConferenceImages(data, resourceType, newContent, eTag, responseETag, resourceId) {
+function persistConferenceImage(conferenceId, resourceType, newContent, eTag, resourceId) {
     var result = ""
     try {
-        var db = getOpenDatabase()
-        console.log("trying to insert row for images " + data.id + ", " + data.name)
+        var db = getOpenDatabase();
 
-        // TODO debugging - remove me later
-//        db.transaction(function (tx) {
-//            var results = tx.executeSql(
-//                        'SELECT * FROM conference_resources order by rowid desc')
-//            for (var i = 0; i < results.rows.length; i++) {
-//                console.log("result : " + results.rows.item(
-//                                i).id + ", " + results.rows.item(i).resourceType)
-//            }
-//        })
+        // eTag may contain leading / trailing double quotes
+        //eTag = eTag.replace('"', '');
+
+        console.log("[conference_resource] trying to insert row for images " + conferenceId + ", " + resourceId + ", etag : " + eTag);
 
         // TODO debugging - remove me later
         db.transaction(function (tx) {
             var results = tx.executeSql(
-                        'SELECT count(*) FROM conference_resources order by rowid desc')
-            for (var i = 0; i < results.rows.length; i++) {
-                console.log("count is : " + results.rows.item(i).id)
+                        'SELECT * FROM conference_resources order by rowid desc')
+            if (results.rows.length > 0) {
+                console.log("conference_resources column count : " + results.rows.length);
+                for (var i = 0; i < results.rows.length; i++) {
+                    var row = results.rows.item(i);
+                    console.log("[conference_resource] pk is : " + row.conferenceId + "/" + row.resourceId + "/" + row.resourceType);
+                }
             }
         })
 
-
-        // TODO end
-        if (eTag) {
-            // if data was requested with an eTag - update
-//            db.transaction(function (tx) {
-//                // TODO implement update
-//                tx.executeSql(
-//                            'UPDATE conference_resources SET name = ?, year = ?, url = ?, homeUrl = ?, startDate = ?, endDate = ?, content = ?, etag = ? WHERE id = ?',
-//                            [data.name, data.year, data.url, data.homeUrl, data.startDate, data.endDate, newContent, responseETag, data.id])
-//            })
-            result = qsTr("Conference images updated.")
-            console.log(result + " id : " + data.id)
-        } else {
-            // insert
-            db.transaction(function (tx) {
-                tx.executeSql(
-                            'INSERT INTO conference_resources (conferenceId, resourceType, resourceId, etag, content) VALUES(?, ?, ?, ?, ?)',
-                            [data.id, resourceType, resourceId, responseETag, newContent])
-            })
-            result = qsTr("Conference images stored. " + resourceId)
-        }
+        // insert
+        db.transaction(function (tx) {
+          tx.executeSql(
+                'INSERT OR REPLACE INTO conference_resources (conferenceId, resourceId, resourceType, etag, content) VALUES(?, ?, ?, ?, ?)',
+                [conferenceId, resourceId, resourceType, eTag, newContent])
+          })
+          result = qsTr("Conference images stored. " + resourceId)
     } catch (err) {
         result = qsTr("Failed to store conference images.")
-        console.log(result + err)
+        console.log("[conference_resource]" + result + err)
     }
     return result
 }
 
-
-// TODO rename singular
-function loadConferenceImages(conferenceId, resourceId) {
-    var resultImage = null;
+function loadConferenceImage(conferenceId, resourceId) {
+    var resultImageData = {};
     try {
         var db = getOpenDatabase()
-        console.log("trying to retrieve images for conferenceId " + conferenceId)
+        console.log("trying to retrieve images for conferenceId/resourceId " + conferenceId + "/" + resourceId);
 
         // TODO move to js function class
-        var db = Database.getOpenDatabase()
         db.transaction(function (tx) {
 
 //            var results1 = tx.executeSql('SELECT * from conference_resources');
@@ -248,21 +230,20 @@ function loadConferenceImages(conferenceId, resourceId) {
 
             // TODO add constraints to table
             var results = tx.executeSql(
-                        'SELECT content FROM conference_resources WHERE conferenceId = ? AND resourceId = ?', [conferenceId, resourceId])
+                        'SELECT content, etag FROM conference_resources WHERE conferenceId = ? AND resourceId = ?', [conferenceId, resourceId])
 
             if (results.rows.length > 0) {
-                var resultRow = results.rows.item(0)
-                console.log("image found : " + resultRow)
-                var jsonData = resultRow.content;
+                resultImageData.eTag = results.rows.item(0).etag;
+                var jsonData = results.rows.item(0).content;
                 if (("" + jsonData).substring(0,4) === "data") {
-                    resultImage = jsonData;
+                    resultImageData.content = jsonData;
                 } else {
                     // conference logo is stored as json (TODO fix and extract the plain DATA)
                     var jsonObj = JSON.parse(jsonData);
                     // console.log(jsonObj.conferenceImage);
                     if (jsonObj.conferenceImage) {
 //                        console.log('Found conference image ! Image : ' + jsonObj.conferenceImage)
-                        resultImage = jsonObj.conferenceImage;
+                        resultImageData.content = jsonObj.conferenceImage;
                     }
                 }
             } else {
@@ -272,8 +253,7 @@ function loadConferenceImages(conferenceId, resourceId) {
     } catch (err) {
         console.log("Failed to load conference images. " + err)
     }
-    return resultImage;
+    return resultImageData;
 }
-
 
 // 'CREATE TABLE IF NOT EXISTS conference_resources (id INTEGER PRIMARY KEY ASC, conferenceId text, resourceType text, resourceId text, etag text, data text)')

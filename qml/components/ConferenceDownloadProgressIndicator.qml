@@ -32,8 +32,6 @@ Item {
     id: loadingIndicator
 
     property bool withOverlay: true
-//    property string conferenceId: ""
-//    property string conferenceYear: ""
     property var confData: null;
     property var runningDownloads: [];
 
@@ -67,61 +65,6 @@ Item {
 
     Image  {
         id: img
-    }
-
-
-    Canvas {
-        id: speakerImageCanvas
-        width: 300;
-        height: 300;
-        visible: false;
-
-
-        property int currentIndex : 0;
-        property var imagefiles : [];
-        property string imagefile : "";
-
-        onImageLoaded : {
-            requestPaint();
-            console.log("image loaded !" + imagefile);
-        }
-
-        onPaint: {
-            console.log("PAINT !");
-            console.log("loaded: " +speakerImageCanvas.isImageLoaded(imagefile))
-            var ctx = getContext("2d");
-
-            if (speakerImageCanvas.isImageLoaded(imagefile)) {
-              var im = ctx.createImageData(imagefile);
-               ctx.drawImage(im, 0, 0, 300, 300);
-
-            var dataUrl = speakerImageCanvas.toDataURL("image/png");
-
-            // check if the image is set
-            if (imagefile.length > 0) {
-                // extract the photoId from the url string
-                var resourceId = imagefile.substring(imagefile.lastIndexOf("/") + 1);
-                // no etags when loading via canvas
-                var result = Database.persistConferenceImages(GlobalDataModel.conferenceJsonData, 'speakerImage', dataUrl, null, null, resourceId);
-                // after persisting - unload image
-                unloadImage(imagefile);
-                ctx.reset();
-                console.log("result is : " + result);
-                if ((currentIndex + 1) < imagefiles.length) {
-                    currentIndex++;
-                    imagefile = imagefiles[currentIndex];
-                    // speakerImagesLabel.text = "Loading image " + currentIndex + " of " + imagefiles.length;
-                    console.log("Loading image " + currentIndex + " of " + imagefiles.length);
-                    loadingLabel4.text = currentIndex + " / " + imagefiles.length;
-                    loadImage(imagefile);
-                } else {
-                    console.log("Finished downloading the images - last one fectech");
-                    loadingLabel4.text = (currentIndex + 1) + " / " + imagefiles.length;
-                    checkDownloadsFinished();
-                }
-            }
-            }
-         }
     }
 
     Column {
@@ -169,8 +112,6 @@ Item {
 
     function performDownload() {
         var data = confData;
-//        data.id = conferenceId;
-//        data.year = conferenceYear;
 
         var requestETag = Database.getETagForConferenceId(data.id)
 
@@ -204,13 +145,10 @@ Item {
                     result = qsTr("Confenrence Data unchanged.")
                 }
 
-
-
-
                 // trigger download of conferenceLogo and speaker images
-                // runningDownloads.push('logo');
+                runningDownloads.push('conferenceImages');
                 runningDownloads.push('speakers');
-                // performImageDownload(data, runningDownloads);
+                performConferenceImagesDownload(data, runningDownloads);
                 performSpeakerImagesDownload(data, detailedConferenceDataString, runningDownloads);
             } else if (returnCode === Constants.RETURN_CODE_ERROR) {
                 result = qsTr("Connection error (HTTP:" + httpRequest.status + ")");
@@ -225,78 +163,78 @@ Item {
         downloadService.execute(downloadData, downloadConferenceData);
     }
 
-    function performImageDownload(data, downloads) {
-        var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
-        var url = urlService.getConferenceImagesUrl(data);
-        // TODO try to fetch etag for images
-        // var eTag = Database.getETagForConferenceId(data.id)
-        var eTag = null;
+//    function performImageDownload(data, downloads) {
+//        var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
+//        var url = urlService.getConferenceImagesUrl(data);
+//        // TODO try to fetch etag for images
+//        // var eTag = Database.getETagForConferenceId(data.id)
+//        var eTag = null;
 
-        console.log("Downloading conference images from URL : " + url)
-        console.log("Using request eTag : " + eTag)
+//        console.log("Downloading conference images from URL : " + url)
+//        console.log("Using request eTag : " + eTag)
 
-        var request2 = new XMLHttpRequest()
-        request2.open('GET', url)
-        request2.setRequestHeader('Content-Type',
-                                 'application/json;charset=utf-8')
-        if (eTag) {
-            request.setRequestHeader('If-None-Match', eTag)
-        }
-        request2.onreadystatechange = function () {
-            console.log(" download finished : ")
-            if (request2.readyState === XMLHttpRequest.DONE) {
-                var headers = request2.getAllResponseHeaders()
-                var responseETag = request2.getResponseHeader("ETag")
-                console.log("Resposne ETag : " + responseETag)
-                console.log("Resposne ETag : " + request2.status)
-                console.log("headers : " + headers)
+//        var request2 = new XMLHttpRequest()
+//        request2.open('GET', url)
+//        request2.setRequestHeader('Content-Type',
+//                                 'application/json;charset=utf-8')
+//        if (eTag) {
+//            request.setRequestHeader('If-None-Match', eTag)
+//        }
+//        request2.onreadystatechange = function () {
+//            console.log(" download finished : ")
+//            if (request2.readyState === XMLHttpRequest.DONE) {
+//                var headers = request2.getAllResponseHeaders()
+//                var responseETag = request2.getResponseHeader("ETag")
+//                console.log("Resposne ETag : " + responseETag)
+//                console.log("Resposne ETag : " + request2.status)
+//                console.log("headers : " + headers)
 
-                var result = null
-                if (request2.status
-                        && request2.status === Constants.HTTP_OK) {
-                    console.log("response",
-                                request2.responseText.substring(0, 200))
+//                var result = null
+//                if (request2.status
+//                        && request2.status === Constants.HTTP_OK) {
+//                    console.log("response",
+//                                request2.responseText.substring(0, 200))
 
-                    result = Database.persistConferenceImages(
-                                data, 'conferenceImage', request2.responseText, eTag,
-                                responseETag, 'logo')
-                    data.isPersisted = true
-
-
-                 //   performSpeakerImagesDownload(data);
-                } else if (request2.status
-                           && request2.status === Constants.HTTP_NOT_MODIFIED) {
-                    result = qsTr("Conference data unchanged.");
+//                    result = Database.persistConferenceImage(
+//                                data.id, 'conferenceImage', request2.responseText,
+//                                responseETag, 'logo')
+//                    data.isPersisted = true
 
 
-                   //  performSpeakerImagesDownload(data);
-                } else {
-                    // showText("Failed to lookup conferences! HTTP error code was " + request.status + " (" + request.statusText +  ")" );
-                    console.log("HTTP:", request2.status)
-                    console.log("responsedata : " + request2.responseText)
-                    result = qsTr(
-                                "Connection error (HTTP:" + request2.status + ")")
-                }
+//                 //   performSpeakerImagesDownload(data);
+//                } else if (request2.status
+//                           && request2.status === Constants.HTTP_NOT_MODIFIED) {
+//                    result = qsTr("Conference data unchanged.");
 
-//                        conferenceNotification.show(result)
-                  checkDownloadsFinished();
-            }
-        }
 
-        try {
-            request2.send()
-        } catch (error) {
-            showText('Error occured : ' + error)
-        }
+//                   //  performSpeakerImagesDownload(data);
+//                } else {
+//                    // showText("Failed to lookup conferences! HTTP error code was " + request.status + " (" + request.statusText +  ")" );
+//                    console.log("HTTP:", request2.status)
+//                    console.log("responsedata : " + request2.responseText)
+//                    result = qsTr(
+//                                "Connection error (HTTP:" + request2.status + ")")
+//                }
 
-        /*view.model.remove(index)*/
+////                        conferenceNotification.show(result)
+//                  checkDownloadsFinished();
+//            }
+//        }
 
-        //console.log("hideBusyIndicator");
-        //busyIndicator.visible = false;
-        // busyIndicator.opacity = 1;
-    }
+//        try {
+//            request2.send()
+//        } catch (error) {
+//            showText('Error occured : ' + error)
+//        }
 
-    function fetchImages(photoIdUrls, downloadService, index, numberOfImages) {
+//        /*view.model.remove(index)*/
+
+//        //console.log("hideBusyIndicator");
+//        //busyIndicator.visible = false;
+//        // busyIndicator.opacity = 1;
+//    }
+
+    function fetchImages(photoIdUrls, downloadService, index, numberOfImages, conferenceId) {
         if (photoIdUrls.length === 0) {
             checkDownloadsFinished();
             return;
@@ -306,10 +244,13 @@ Item {
 
         var resourceId = currentPhotoId.substring(currentPhotoId.lastIndexOf("/") + 1);
 
+        // check if we have image already in the db - etag!
+        var imageData = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, resourceId);
+
         var downloadData = Utils2.createDownloadData();
         downloadData.url = currentPhotoId;
         downloadData.contentType = undefined; // we do not know the type of image
-        downloadData.eTag = null;
+        downloadData.eTag = (imageData !== null ? imageData.eTag : null);
 
         console.log("fetching image : "+ currentPhotoId);
 
@@ -323,16 +264,15 @@ Item {
                 var detailedConferenceDataString = "";
                 if (returnCode === Constants.RETURN_CODE_OK) {
                     var image = 'data:image/png;base64,' + Constants.base64Encode(rawString); // TODO move to CPP code instaed of via JS
+                    // TODO for displaying image
                     img.source = image;
                     var responseETag = httpRequest.getResponseHeader("ETag");
+                    Database.persistConferenceImage(conferenceId, 'speakerImage', image, responseETag, resourceId);
 
-                    // TODO erster parameter muss das data object der akt konferenz sein
-                    Database.persistConferenceImages(GlobalDataModel.conferenceJsonData, 'speakerImage', image, null, responseETag, resourceId);
-
-                    data.isPersisted = true;
+                    //data.isPersisted = true;
                 } else if (returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
                     // TODO reload from DB
-                    console.log("image not change !");
+                    console.log("image not changed !");
                 } else if (returnCode === Constants.RETURN_CODE_ERROR) {
                     // TODO show message
                     checkDownloadsFinished();
@@ -340,27 +280,19 @@ Item {
 
 
                 // call recursively
-                fetchImages(photoIdUrls, downloadService, index + 1, numberOfImages);
-
-                // trigger download of conferenceLogo and speaker images
-                // runningDownloads.push('logo');
-                // runningDownloads.push('speakers');
-                // performImageDownload(data, runningDownloads);
-                // performSpeakerImagesDownload(data, detailedConferenceDataString, runningDownloads);
+                fetchImages(photoIdUrls, downloadService, index + 1, numberOfImages, conferenceId);
             } else if (returnCode === Constants.RETURN_CODE_ERROR) {
+                // TODO handle error
                 //result = qsTr("Connection error (HTTP:" + httpRequest.status + ")");
                 // hide loading indicator again
                 //closeIndicatorTimer.start();
             }
-
             //conferenceNotification.show(result)
         };
 
         loadingLabel4.text = index + " / " + numberOfImages;
         downloadService.executeBinary(downloadData, downloadConferenceData);
-
     }
-
 
     function performSpeakerImagesDownload(data, detailedConferenceDataString, downloads) {
         var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
@@ -380,34 +312,60 @@ Item {
 
 
         var downloadService = Utils2.createDownloadService();
-        fetchImages(photoIdUrls, downloadService, 1, photoIdUrls.length);
+        fetchImages(photoIdUrls, downloadService, 1, photoIdUrls.length, data.id);
+    }
 
+    function performConferenceImagesDownload(data, detailedConferenceDataString, downloads) {
+        var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
+        var url = urlService.getConferenceImagesUrl(data);
 
+        console.log("conference images url : " + url);
 
+        // check if we have image already in the db - etag!
+        var conferenceId = data.id;
+        var imageData = Database.loadConferenceImage(conferenceId, Constants.CONFERENCE_LOGO);
 
+        var downloadService = Utils2.createDownloadService();
 
+        var downloadData = Utils2.createDownloadData();
+        downloadData.url = url;
+        downloadData.eTag = (imageData !== null ? imageData.eTag : null);
 
+        var downloadConferenceData = function(returnCode, httpRequest, rawString) {
+            var result = null;
 
+            if (returnCode === Constants.RETURN_CODE_OK || returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
+                // ok -> data was updated -> so we persist it
+                var detailedConferenceDataString = "";
+                if (returnCode === Constants.RETURN_CODE_OK) {
+                    var response = JSON.parse(httpRequest.responseText);
+                    var responseETag = httpRequest.getResponseHeader("ETag");
+                    Database.persistConferenceImage(conferenceId, Constants.CONFERENCE_LOGO, response.conferenceImage, responseETag, Constants.CONFERENCE_LOGO);
+                    //data.isPersisted = true;
+                } else if (returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
+                    // TODO reload from DB
+                    console.log("image not changed !");
+                } else if (returnCode === Constants.RETURN_CODE_ERROR) {
+                    // TODO show message
+                    checkDownloadsFinished();
+                }
 
+                checkDownloadsFinished();
 
+                // call recursively
+                //fetchImages(photoIdUrls, downloadService, index + 1, numberOfImages, conferenceId);
+            } else if (returnCode === Constants.RETURN_CODE_ERROR) {
+                // TODO handle error
+                //result = qsTr("Connection error (HTTP:" + httpRequest.status + ")");
+                // hide loading indicator again
+                //closeIndicatorTimer.start();
+            }
+            //conferenceNotification.show(result)
+        };
 
+//        loadingLabel4.text = index + " / " + numberOfImages;
+        downloadService.executeBinary(downloadData, downloadConferenceData);
 
-
-
-
-
-        // speakerImagesLabel.visible = true;
-
-//        speakerImageCanvas.visible = false; // true to debug
-//        speakerImageCanvas.currentIndex = 0;
-//        speakerImageCanvas.imagefiles = photoIdUrls;
-//        speakerImageCanvas.imagefile = photoIdUrls[0];
-
-//        // by setting the loadImage with a file we trigger the downloading via the canvas!!
-//        // the canvas will check if there are more images to download via the imagefiles array given.
-//        console.log(" load image trigger : " + speakerImageCanvas.imagefile);
-//        console.log("image loaded: " + speakerImageCanvas.isImageLoaded(speakerImageCanvas.imagefile));
-//        speakerImageCanvas.loadImage(speakerImageCanvas.imagefile);
     }
 
     onVisibleChanged: {

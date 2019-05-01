@@ -590,7 +590,7 @@ var UrlService = /** @class */ (function () {
         // http://localhost:8083/rest/image-resources/javaland/2016/
         if (this.single) {
             var url = this.conferencesUrl.replace(new RegExp("/conferences", "g"), "");
-            url += "/image-resources/" + conferenceData.id + "/" + conferenceData.year + "/";
+            url += "/image-resources/" + conferenceData.id.replace(new RegExp("\\d", "g"), "") + "/" + conferenceData.year + "/";
             return url;
         }
         else {

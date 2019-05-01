@@ -13,6 +13,8 @@ var RETURN_CODE_ERROR = 2;
 
 var VERSION = "0.1"
 
+var CONFERENCE_LOGO = 'conferenceImage';
+
 // default endpoint for the conferences (basically the starting point)
 // var CONFERENCES_URL = 'https://latest.dukecon.org/conferences';
 // var SINGLE = false;

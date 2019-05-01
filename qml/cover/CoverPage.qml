@@ -23,6 +23,7 @@ import QtQuick.LocalStorage 2.0
 // QTBUG-34418
 import "../pages/."
 
+import "../pages/constants.js" as Constants
 import "../pages/utils2.js" as Utils2
 import "../pages/database.js" as Database
 
@@ -89,9 +90,10 @@ CoverBackground {
 
     function updateConferenceImage() {
         var manager = Utils2.createConferenceManager(GlobalDataModel.conferenceJsonData);
-        var image = Database.loadConferenceImages(GlobalDataModel.conferenceJsonData.id, 'logo');
+        var imageData = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, Constants.CONFERENCE_LOGO);
         // if no image could be found - reset the image - may be changed to a nice default image
-        backgroundImage.source = (image !== null ? image : "");
+        console.log("image : " + (imageData.content !== undefined ? imageData.content.substring(1, 200) : "-"));
+        backgroundImage.source = (imageData.content !== undefined ? imageData.content : "");
     }
 
 }
