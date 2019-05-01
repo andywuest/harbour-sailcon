@@ -28,7 +28,7 @@ class UrlService {
         // http://localhost:8083/rest/image-resources/javaland/2016/
         if (this.single) {
             let url: string = this.conferencesUrl.replace(new RegExp("/conferences", "g"), "")
-            url += "/image-resources/" + conferenceData.id + "/" + conferenceData.year + "/";
+            url += "/image-resources/" + conferenceData.id.replace(new RegExp("\\d", "g"), "") + "/" + conferenceData.year + "/";
             return url;
         } else {
             let url: string = this.getBasePath(conferenceData) + "rest/image-resources.json";
