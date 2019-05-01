@@ -148,8 +148,8 @@ Item {
                 // trigger download of conferenceLogo and speaker images
                 runningDownloads.push('conferenceImages');
                 runningDownloads.push('speakers');
-                performConferenceImagesDownload(data, runningDownloads);
-                performSpeakerImagesDownload(data, detailedConferenceDataString, runningDownloads);
+                performConferenceImagesDownload(data);
+                performSpeakerImagesDownload(data, detailedConferenceDataString);
             } else if (returnCode === Constants.RETURN_CODE_ERROR) {
                 result = qsTr("Connection error (HTTP:" + httpRequest.status + ")");
                 // hide loading indicator again
@@ -162,77 +162,6 @@ Item {
         var downloadService = Utils2.createDownloadService();
         downloadService.execute(downloadData, downloadConferenceData);
     }
-
-//    function performImageDownload(data, downloads) {
-//        var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
-//        var url = urlService.getConferenceImagesUrl(data);
-//        // TODO try to fetch etag for images
-//        // var eTag = Database.getETagForConferenceId(data.id)
-//        var eTag = null;
-
-//        console.log("Downloading conference images from URL : " + url)
-//        console.log("Using request eTag : " + eTag)
-
-//        var request2 = new XMLHttpRequest()
-//        request2.open('GET', url)
-//        request2.setRequestHeader('Content-Type',
-//                                 'application/json;charset=utf-8')
-//        if (eTag) {
-//            request.setRequestHeader('If-None-Match', eTag)
-//        }
-//        request2.onreadystatechange = function () {
-//            console.log(" download finished : ")
-//            if (request2.readyState === XMLHttpRequest.DONE) {
-//                var headers = request2.getAllResponseHeaders()
-//                var responseETag = request2.getResponseHeader("ETag")
-//                console.log("Resposne ETag : " + responseETag)
-//                console.log("Resposne ETag : " + request2.status)
-//                console.log("headers : " + headers)
-
-//                var result = null
-//                if (request2.status
-//                        && request2.status === Constants.HTTP_OK) {
-//                    console.log("response",
-//                                request2.responseText.substring(0, 200))
-
-//                    result = Database.persistConferenceImage(
-//                                data.id, 'conferenceImage', request2.responseText,
-//                                responseETag, 'logo')
-//                    data.isPersisted = true
-
-
-//                 //   performSpeakerImagesDownload(data);
-//                } else if (request2.status
-//                           && request2.status === Constants.HTTP_NOT_MODIFIED) {
-//                    result = qsTr("Conference data unchanged.");
-
-
-//                   //  performSpeakerImagesDownload(data);
-//                } else {
-//                    // showText("Failed to lookup conferences! HTTP error code was " + request.status + " (" + request.statusText +  ")" );
-//                    console.log("HTTP:", request2.status)
-//                    console.log("responsedata : " + request2.responseText)
-//                    result = qsTr(
-//                                "Connection error (HTTP:" + request2.status + ")")
-//                }
-
-////                        conferenceNotification.show(result)
-//                  checkDownloadsFinished();
-//            }
-//        }
-
-//        try {
-//            request2.send()
-//        } catch (error) {
-//            showText('Error occured : ' + error)
-//        }
-
-//        /*view.model.remove(index)*/
-
-//        //console.log("hideBusyIndicator");
-//        //busyIndicator.visible = false;
-//        // busyIndicator.opacity = 1;
-//    }
 
     function fetchImages(photoIdUrls, downloadService, index, numberOfImages, conferenceId) {
         if (photoIdUrls.length === 0) {
@@ -294,7 +223,7 @@ Item {
         downloadService.executeBinary(downloadData, downloadConferenceData);
     }
 
-    function performSpeakerImagesDownload(data, detailedConferenceDataString, downloads) {
+    function performSpeakerImagesDownload(data, detailedConferenceDataString) {
         var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
         var baseUrl = urlService.getSpeakerImagesUrl(data);
 
@@ -307,15 +236,13 @@ Item {
 
         loadingLabel4.text = 0 + " / " + photoIdUrls.length;
 
-
         // https://stackoverflow.com/questions/53888158/download-and-convert-image-to-data-uri-in-qml
-
 
         var downloadService = Utils2.createDownloadService();
         fetchImages(photoIdUrls, downloadService, 1, photoIdUrls.length, data.id);
     }
 
-    function performConferenceImagesDownload(data, detailedConferenceDataString, downloads) {
+    function performConferenceImagesDownload(data, detailedConferenceDataString) {
         var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
         var url = urlService.getConferenceImagesUrl(data);
 
@@ -331,7 +258,7 @@ Item {
         downloadData.url = url;
         downloadData.eTag = (imageData !== null ? imageData.eTag : null);
 
-        var downloadConferenceData = function(returnCode, httpRequest, rawString) {
+        var downloadConferenceData = function(returnCode, httpRequest) {
             var result = null;
 
             if (returnCode === Constants.RETURN_CODE_OK || returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
@@ -364,8 +291,7 @@ Item {
         };
 
 //        loadingLabel4.text = index + " / " + numberOfImages;
-        downloadService.executeBinary(downloadData, downloadConferenceData);
-
+        downloadService.execute(downloadData, downloadConferenceData);
     }
 
     onVisibleChanged: {
