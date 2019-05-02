@@ -170,7 +170,7 @@ Page {
                         console.log("updated data model to " + GlobalDataModel.conferenceJsonData)
                         var responseETag = httpRequest.getResponseHeader("ETag");
 
-                        result = Database.persistConferenceData(data, httpRequest.responseText, eTag, responseETag)
+                        result = Database.persistConferenceData(data, httpRequest.responseText, responseETag)
                         data.isPersisted = true;
                         var downloads = [];
                         downloads.push('logo');

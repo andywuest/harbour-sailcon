@@ -133,7 +133,7 @@ Item {
                     GlobalDataModel.conferenceJsonData = JSON.parse(detailedConferenceDataString)
                     console.log("Conference data was updated updated data model to " + GlobalDataModel.conferenceJsonData)
                     var responseETag = httpRequest.getResponseHeader("ETag");
-                    result = Database.persistConferenceData(data, detailedConferenceDataString, requestETag, responseETag)
+                    result = Database.persistConferenceData(data, detailedConferenceDataString, responseETag)
                     data.isPersisted = true;
                 } else if (returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
                     // TODO reload from DB

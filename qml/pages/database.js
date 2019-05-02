@@ -1,4 +1,7 @@
 // .pragma library
+
+Qt.include("constants.js")
+
 function getOpenDatabase() {
     var db = LocalStorage.openDatabaseSync(
                 "DukeConApp", "1.0",
@@ -29,7 +32,7 @@ function initApplicationTables() {
         db.transaction(function (tx) {
             tx.executeSql(
                         'CREATE TABLE IF NOT EXISTS conference'
-                        + ' (id text primary key, name text, year text, url text, homeUrl text, startDate text, endDate text, state integer, content text, etag text)')
+                        + ' (id text, name text, year text, url text, homeUrl text, startDate text, endDate text, state integer, content text, etag text, PRIMARY KEY(id))')
             tx.executeSql(
                         'CREATE TABLE IF NOT EXISTS talk'
                         + ' (talkId INTEGER NOT NULL, favorite BOOLEAN NOT NULL DEFAULT false, rated BOOLEAN NOT NULL DEFAULT false, rating INTEGER)')
@@ -82,9 +85,8 @@ function getETagForConferenceId(conferenceId) {
     return eTag
 }
 
-// TODO rename singular
 // persists the conference data - either insert or update
-function persistConferenceData(data, newContent, eTag, responseETag) {
+function persistConferenceData(data, newContent, eTag) {
     var result = ""
     try {
         var db = getOpenDatabase()
@@ -92,40 +94,21 @@ function persistConferenceData(data, newContent, eTag, responseETag) {
 
         var numberOfPersistedConferences = 0;
 
-        // TODO debugging - remove me later
         db.transaction(function (tx) {
-            var results = tx.executeSql(
-                        'SELECT id,name,year,url,homeUrl,startDate,endDate,content FROM conference order by rowid desc')
-            numberOfPersistedConferences = results.rows.length;
-            for (var i = 0; i < results.rows.length; i++) {
-                console.log("result : " + results.rows.item(
-                                i).id + ", " + results.rows.item(i).name)
-            }
+            var results = tx.executeSql('SELECT COUNT(*) as count FROM conference');
+            numberOfPersistedConferences = results.rows.item(0).count;
         })
 
         console.log("number of persisted conferences : " + numberOfPersistedConferences)
 
-        // TODO end
-        if (eTag) {
-            // if data was requested with an eTag - update
-            db.transaction(function (tx) {
-                tx.executeSql(
-                            'UPDATE conference SET name = ?, year = ?, url = ?, homeUrl = ?, startDate = ?, endDate = ?, content = ?, etag = ? WHERE id = ?',
-                            [data.name, data.year, data.url, data.homeUrl, data.startDate, data.endDate, newContent, responseETag, data.id])
-            })
-            result = qsTr("Conference data updated.")
-            console.log(result + " id : " + data.id)
-        } else {
-            // insert
-            db.transaction(function (tx) {
-                // mark the first conference directly as active
-                var initialState = (numberOfPersistedConferences === 0 ? 1 : 0);
-                tx.executeSql(
-                            'INSERT INTO conference VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                            [data.id, data.name, data.year, data.url, data.homeUrl, data.startDate, data.endDate, initialState, newContent, responseETag])
-            })
-            result = qsTr("Conference data stored.")
-        }
+        db.transaction(function (tx) {
+            // mark the first conference directly as active
+            var initialState = (numberOfPersistedConferences === 0 ? CONFERENCE_ACTIVE : CONFERENCE_INACTIVE);
+            tx.executeSql(
+                        'INSERT OR REPLACE INTO conference(id, name, year, url, homeUrl, startDate, endDate, state, content, etag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        [data.id, data.name, data.year, data.url, data.homeUrl, data.startDate, data.endDate, initialState, newContent, eTag])
+        })
+        result = qsTr("Conference data stored.")
     } catch (err) {
         result = qsTr("Failed to store conference data.")
         console.log(result + err)
@@ -203,7 +186,7 @@ function persistConferenceImage(conferenceId, resourceType, newContent, eTag, re
         // insert
         db.transaction(function (tx) {
           tx.executeSql(
-                'INSERT OR REPLACE INTO conference_resources (conferenceId, resourceId, resourceType, etag, content) VALUES(?, ?, ?, ?, ?)',
+                'INSERT OR REPLACE INTO conference_resources (conferenceId, resourceId, resourceType, etag, content) VALUES (?, ?, ?, ?, ?)',
                 [conferenceId, resourceId, resourceType, eTag, newContent])
           })
           result = qsTr("Conference images stored. " + resourceId)
