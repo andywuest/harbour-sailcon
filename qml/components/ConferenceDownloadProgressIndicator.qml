@@ -116,8 +116,6 @@ Item {
         var requestETag = Database.getETagForConferenceId(data.id)
 
         var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
-        var dataUrl = urlService.getConferenceDataUrl(data);
-        var imagesUrl = urlService.getConferenceImagesUrl(data);
         var url = urlService.getConferenceDataUrl(data);
 
         var downloadData = Utils2.createDownloadData();
@@ -159,8 +157,7 @@ Item {
             conferenceNotification.show(result)
         };
 
-        var downloadService = Utils2.createDownloadService();
-        downloadService.execute(downloadData, downloadConferenceData);
+        Utils2.createDownloadService().execute(downloadData, downloadConferenceData);
     }
 
     function fetchImages(photoIdUrls, downloadService, index, numberOfImages, conferenceId) {
@@ -181,10 +178,6 @@ Item {
         downloadData.contentType = undefined; // we do not know the type of image
         downloadData.eTag = (imageData !== null ? imageData.eTag : null);
 
-        console.log("fetching image : "+ currentPhotoId);
-
-        // TODO try to load etag from db before loading -> so we can call the service with an etag
-
         var downloadConferenceData = function(returnCode, httpRequest, rawString) {
             var result = null;
 
@@ -197,8 +190,6 @@ Item {
                     img.source = image;
                     var responseETag = httpRequest.getResponseHeader("ETag");
                     Database.persistConferenceImage(conferenceId, 'speakerImage', image, responseETag, resourceId);
-
-                    //data.isPersisted = true;
                 } else if (returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
                     // TODO reload from DB
                     console.log("image not changed !");
@@ -252,8 +243,6 @@ Item {
         var conferenceId = data.id;
         var imageData = Database.loadConferenceImage(conferenceId, Constants.CONFERENCE_LOGO);
 
-        var downloadService = Utils2.createDownloadService();
-
         var downloadData = Utils2.createDownloadData();
         downloadData.url = url;
         downloadData.eTag = (imageData !== null ? imageData.eTag : null);
@@ -268,7 +257,6 @@ Item {
                     var response = JSON.parse(httpRequest.responseText);
                     var responseETag = httpRequest.getResponseHeader("ETag");
                     Database.persistConferenceImage(conferenceId, Constants.CONFERENCE_LOGO, response.conferenceImage, responseETag, Constants.CONFERENCE_LOGO);
-                    //data.isPersisted = true;
                 } else if (returnCode === Constants.RETURN_CODE_NOT_MODIFIED) {
                     // TODO reload from DB
                     console.log("image not changed !");
@@ -290,8 +278,7 @@ Item {
             //conferenceNotification.show(result)
         };
 
-//        loadingLabel4.text = index + " / " + numberOfImages;
-        downloadService.execute(downloadData, downloadConferenceData);
+        Utils2.createDownloadService().execute(downloadData, downloadConferenceData);
     }
 
     onVisibleChanged: {
