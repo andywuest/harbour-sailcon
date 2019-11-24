@@ -46,17 +46,17 @@ TRANSLATIONS += \
 
 DISTFILES += \
     qml/pages/Third.qml \
-    qml/pages/logic.js \
+    js/pages/logic.js \
     qml/pages/Talk.qml \
     qml/pages/TalkSettings.qml \
-    qml/pages/utils.js \
-    qml/pages/jfs2016.js \
+    js/pages/utils.js \
+    js/pages/jfs2016.js \
     qml/pages/ExploreByDay.qml \
     qml/pages/ExploreByDayAndTime.qml \
     qml/pages/ExplorationTypeSelection.qml \
     qml/pages/ExploreByTrack.qml \
     qml/pages/Talks.qml \
-    qml/pages/utils2.js \
+    js/pages/utils2.js \
     qml/pages/ExploreByTime.qml \
     qml/pages/ExploreByLocation.qml \
     qml/pages/ExploreByAudience.qml \
@@ -66,18 +66,19 @@ DISTFILES += \
     qml/pages/GlobalDataModel.qml \
     qml/pages/qmldir \
     qml/pages/TODO.txt \
-    qml/pages/constants.js \
+    js/pages/constants.js \
     images/j.png \
     images/UnknownUser.png \
     images/social_xing.svg \
     qml/components/AppNotification.qml \
     qml/components/AppNotificationItem.qml \
-    qml/pages/database.js \
+    js/pages/database.js \
     qml/pages/About.qml \
     qml/components/LabelText.qml \
     qml/components/Speaker.qml \
     qml/pages/Settings.qml \
-    qml/components/DownloadProgressIndicator.qml
+    qml/components/DownloadProgressIndicator.qml \
+    qml/components/ConferenceDownloadProgressIndicator.qml
 
 
 qmldir.files = qml/pages/qmldir
