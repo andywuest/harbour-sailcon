@@ -15,7 +15,9 @@ TARGET = harbour-sailcon
 
 CONFIG += sailfishapp
 
-SOURCES += src/harbour-sailcon.cpp
+SOURCES += src/harbour-sailcon.cpp \
+    src/dukeconbackend.cpp \
+    src/sailcon.cpp
 
 OTHER_FILES += qml/harbour-sailcon.qml \
     qml/cover/CoverPage.qml \
@@ -87,3 +89,7 @@ images.files = images
 images.path = /usr/share/$${TARGET}
 
 INSTALLS += images
+
+HEADERS += \
+    src/dukeconbackend.h \
+    src/sailcon.h
