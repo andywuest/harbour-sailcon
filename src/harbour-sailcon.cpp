@@ -34,17 +34,19 @@
 
 #include <sailfishapp.h>
 
+#include "sailcon.h"
 
-int main(int argc, char *argv[])
-{
-    // SailfishApp::main() will display "qml/template.qml", if you need more
-    // control over initialization, you can use:
-    //
-    //   - SailfishApp::application(int, char *[]) to get the QGuiApplication *
-    //   - SailfishApp::createView() to get a new QQuickView * instance
-    //   - SailfishApp::pathTo(QString) to get a QUrl to a resource file
-    //
-    // To display the view, call "show()" (will show fullscreen on device).
+int main(int argc, char *argv[]) {
+    QScopedPointer<QGuiApplication> app(SailfishApp::application(argc, argv));
+    QScopedPointer<QQuickView> view(SailfishApp::createView());
 
-    return SailfishApp::main(argc, argv);
+    QQmlContext *context = view.data()->rootContext();
+    Sailcon sailcon;
+    context->setContextProperty("sailcon", &sailcon);
+    DukeconBackend *dukeconBackend = sailcon.getDukeconBackend();
+    context->setContextProperty("dukeconBackend", dukeconBackend);
+
+    view->setSource(SailfishApp::pathTo("qml/harbour-sailcon.qml"));
+    view->show();
+    return app->exec();
 }
