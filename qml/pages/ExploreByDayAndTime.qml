@@ -18,9 +18,9 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 
-import "utils.js" as Utils
-import "jfs2016.js" as Data
-import "logic.js" as Logic
+import "../js/utils.js" as Utils
+import "../js/jfs2016.js" as Data
+import "../js/logic.js" as Logic
 
 Page {
     id: page

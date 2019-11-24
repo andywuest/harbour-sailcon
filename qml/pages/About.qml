@@ -3,7 +3,7 @@ import QtQuick 2.1
 import Sailfish.Silica 1.0
 import "../components"
 
-import "constants.js" as Constants
+import "../js/constants.js" as Constants
 
 // from code reader
 // https://raw.githubusercontent.com/monich/sailfish-barcode/master/qml/components/LabelText.qml

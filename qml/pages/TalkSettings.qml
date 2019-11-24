@@ -19,7 +19,7 @@ import QtQuick 2.0
 import QtQuick.LocalStorage 2.0
 import Sailfish.Silica 1.0
 
-import "logic.js" as Logic
+import "../js/logic.js" as Logic
 
 Page {
     id: eventPage

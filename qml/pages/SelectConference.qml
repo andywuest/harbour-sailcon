@@ -24,9 +24,9 @@ import "../components"
 // QTBUG-34418
 import "."
 
-import "constants.js" as Constants
-import "utils2.js" as Utils2
-import "database.js" as Database
+import "../js/constants.js" as Constants
+import "../js/utils2.js" as Utils2
+import "../js/database.js" as Database
 
 
 // http://imaginativethinking.ca/make-qml-component-singleton/

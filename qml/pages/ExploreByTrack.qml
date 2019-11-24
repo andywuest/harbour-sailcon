@@ -21,10 +21,10 @@ import Sailfish.Silica 1.0
 // QTBUG-34418
 import "."
 
-import "utils.js" as Utils
+import "../js/utils.js" as Utils
 // import "jfs2016.js" as Data
-import "logic.js" as Logic
-import "utils2.js" as Utils2
+import "../js/logic.js" as Logic
+import "../js/utils2.js" as Utils2
 
 Page {
     id: page

@@ -18,15 +18,16 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
+
 import "../components"
 
 // QTBUG-34418
 import "."
 
-import "logic.js" as Logic
-import "utils2.js" as Utils2
-import "constants.js" as Constants
-import "database.js" as Database
+import "../js/logic.js" as Logic
+import "../js/utils2.js" as Utils2
+import "../js/constants.js" as Constants
+import "../js/database.js" as Database
 
 
 Page {
@@ -43,10 +44,25 @@ Page {
         console.log("first page left")
     }
 
-
     Image {
             id: img
         }
+
+    function globalFunction() {
+        console.log("test global function");
+    }
+
+
+//    Timer {
+//        id: timer
+//    }
+
+//    function delay(delayTime, cb) {
+//        timer.interval = delayTime
+//        timer.repeat = false
+//        timer.triggered.connect(cb)
+//        timer.start()
+//    }
 
 //    property bool indicatorVisible : true;
 
@@ -206,7 +222,7 @@ Page {
                             visible: (listView.model.get(index) !== undefined
                                       && "noConf" !== listView.model.get(
                                           index).name && listView.model.get(
-                                          index).state === 0)
+                                          index).state === Constants.CONFERENCE_INACTIVE)
                             text: "Set as Active"
                             onClicked: activateConference(index)
                         }
@@ -214,19 +230,14 @@ Page {
                             visible: (listView.model.get(index) !== undefined
                                       && "noConf" !== listView.model.get(
                                           index).name && listView.model.get(
-                                          index).state === 1)
+                                          index).state === Constants.CONFERENCE_ACTIVE)
                             text: "Unset as Active"
                             onClicked: deactivateAllConferences()
                         }
                         MenuItem {
                             visible: true
                             text: qsTr("Update")
-                            onClicked: {
-                                console.log("update")
-                                favoritesLoadingIndicator.conferenceId = listView.model.get(index).name;
-                                favoritesLoadingIndicator.conferenceYear = "2017";
-                                favoritesLoadingIndicator.visible = true;
-                            }
+                            onClicked: updateConference(index);
                         }
                     }
                 }
@@ -234,6 +245,14 @@ Page {
                 function deactivateAllConferences() {
                     flickable.activateConferenceInDatabase()
                     flickable.reloadModelFromDatabase(listView.model)
+                }
+
+                function updateConference(index) {
+                    var conferenceId = listView.model.get(index).name;
+                    remorseAction("Downloading Data", function () {
+                        favoritesLoadingIndicator.confData = Database.loadConferenceFromDatabase(conferenceId);
+                        favoritesLoadingIndicator.visible = true;
+                    })
                 }
 
                 function activateConference(index) {

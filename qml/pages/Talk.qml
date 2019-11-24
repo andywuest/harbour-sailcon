@@ -26,8 +26,8 @@ import "."
 
 
 // import "jfs2016.js" as Data
-import "utils2.js" as Utils2
-import "database.js" as Database
+import "../js/utils2.js" as Utils2
+import "../js/database.js" as Database
 
 Page {
     id: eventPage

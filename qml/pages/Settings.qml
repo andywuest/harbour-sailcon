@@ -2,7 +2,7 @@ import QtQuick 2.1
 import Sailfish.Silica 1.0
 import "../components"
 
-import "constants.js" as Constants
+import "../js/constants.js" as Constants
 
 Page {
     id: settingsPage

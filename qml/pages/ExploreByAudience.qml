@@ -22,8 +22,8 @@ import Sailfish.Silica 1.0
 import "."
 
 // import "jfs2016.js" as Data
-import "logic.js" as Logic
-import "utils2.js" as Utils2
+import "../js/logic.js" as Logic
+import "../js/utils2.js" as Utils2
 
 Page {
     id: page
