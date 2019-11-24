@@ -32,6 +32,7 @@ import "../js/database.js" as Database
 // http://imaginativethinking.ca/make-qml-component-singleton/
 Page {
     id: selectConference
+    property var downloadConference;
 
     Timer {
         id: timer
@@ -48,6 +49,7 @@ Page {
         id: conferenceNotification
     }
 
+
     /*
     Label {
         id: speakerImagesLabel
@@ -55,65 +57,70 @@ Page {
         text: "?"
     }
     */
-
     Canvas {
         id: speakerImageCanvas
-        width: 300;
-        height: 300;
-        visible: false;
+        width: 300
+        height: 300
+        visible: false
 
-        property int currentIndex : 0;
-        property var imagefiles : [];
-        property string imagefile : "";
+        property int currentIndex: 0
+        property var imagefiles: []
+        property string imagefile: ""
 
-        onImageLoaded : {
-            requestPaint();
-            console.log("image loaded !" + imagefile);
+        onImageLoaded: {
+            requestPaint()
+            console.log("image loaded !" + imagefile)
         }
 
         onPaint: {
-            console.log("PAINT !");
-            console.log("loaded: " +speakerImageCanvas.isImageLoaded(imagefile))
-            var ctx = getContext("2d");
+            console.log("PAINT !")
+            console.log("loaded: " + speakerImageCanvas.isImageLoaded(
+                            imagefile))
+            var ctx = getContext("2d")
 
             if (speakerImageCanvas.isImageLoaded(imagefile)) {
-              var im = ctx.createImageData(imagefile);
-//             im.data[3] = 128;
-               ctx.drawImage(im, 0, 0, 300, 300);
+                var im = ctx.createImageData(imagefile)
+                //             im.data[3] = 128;
+                ctx.drawImage(im, 0, 0, 300, 300)
                 //ctx.drawImage(im, 10, 10, 280, 280); // with some margin
-             }
+            }
 
-            var dataUrl = speakerImageCanvas.toDataURL("image/png");
-      //      var manager = Utils2.createConferenceManager(GlobalDataModel.conferenceJsonData);
-//             console.log("stored image under  : " + GlobalDataModel.conferenceJsonData.id + ", " + 'd15f234b7a5fe0b72b5a3e21d72a7445');
-        //    console.log("dataurlxx : " + dataUrl);
-
+            var dataUrl = speakerImageCanvas.toDataURL("image/png")
+            //      var manager = Utils2.createConferenceManager(GlobalDataModel.conferenceJsonData);
+            //             console.log("stored image under  : " + GlobalDataModel.conferenceJsonData.id + ", " + 'd15f234b7a5fe0b72b5a3e21d72a7445');
+            //    console.log("dataurlxx : " + dataUrl);
 
             // check if the image is set
             if (imagefile.length > 0) {
                 // extract the photoId from the url string
-                var resourceId = imagefile.substring(imagefile.lastIndexOf("/") + 1);
+                var resourceId = imagefile.substring(
+                            imagefile.lastIndexOf("/") + 1)
                 // no etags when loading via canvas
-                var result = Database.persistConferenceImage(GlobalDataModel.conferenceJsonData.id, 'speakerImage', dataUrl, null, resourceId);
-                console.log("result is : " + result);
+                var result = Database.persistConferenceImage(
+                            GlobalDataModel.conferenceJsonData.id,
+                            'speakerImage', dataUrl, null, resourceId)
+                console.log("result is : " + result)
                 if ((currentIndex + 1) < imagefiles.length) {
-                    currentIndex++;
-                    imagefile = imagefiles[currentIndex];
-//                    speakerImagesLabel.text = "Loading image " + currentIndex + " of " + imagefiles.length;
-                    loadImage(imagefile);
-                    console.log("Loading image " + currentIndex + " of " + imagefiles.length);
+                    currentIndex++
+                    imagefile = imagefiles[currentIndex]
+                    //                    speakerImagesLabel.text = "Loading image " + currentIndex + " of " + imagefiles.length;
+                    loadImage(imagefile)
+                    console.log("Loading image " + currentIndex + " of " + imagefiles.length)
                 }
             }
-         }
+        }
     }
 
     ConferenceDownloadProgressIndicator {
-                id: favoritesLoadingIndicator
-                visible: false
-                Behavior on opacity { NumberAnimation {} }
-                opacity: !favoritesLoadingIndicator.visbile ? 1 : 0
-                height: parent.height
-                width: parent.width
+        id: favoritesLoadingIndicator
+        visible: false
+        Behavior on opacity {
+            NumberAnimation {
+            }
+        }
+        opacity: !favoritesLoadingIndicator.visbile ? 1 : 0
+        height: parent.height
+        width: parent.width
     }
 
     SilicaListView {
@@ -141,122 +148,134 @@ Page {
 
             function performDownload() {
                 var data = listView.model.get(index)
+                downloadConference = data;
 
-//                favoritesLoadingIndicator.conferenceId = data.id;
-//                favoritesLoadingIndicator.conferenceYear = data.year;
-                favoritesLoadingIndicator.confData = data;
-                favoritesLoadingIndicator.visible = true;
+                if (Constants.SINGLE) {
+                    dukeconBackend.downloadAllData(Constants.SINGLE, data.id, null)
+                    return;
+                }
+
+
+
+
+
+                //                favoritesLoadingIndicator.conferenceId = data.id;
+                //                favoritesLoadingIndicator.conferenceYear = data.year;
+                favoritesLoadingIndicator.confData = data
+                favoritesLoadingIndicator.visible = true
 
                 if (1 == 1) {
-                    return;
+                    return
                 }
 
                 var eTag = Database.getETagForConferenceId(data.id)
 
-                var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
-                var dataUrl = urlService.getConferenceDataUrl(data);
-                var imagesUrl = urlService.getConferenceImagesUrl(data);
+                var urlService = Utils2.createUrlService(
+                            Constants.CONFERENCES_URL, Constants.SINGLE)
+                var dataUrl = urlService.getConferenceDataUrl(data)
+                var imagesUrl = urlService.getConferenceImagesUrl(data)
 
-                var url = urlService.getConferenceDataUrl(data);
+                var url = urlService.getConferenceDataUrl(data)
 
-                var downloadData = Utils2.createDownloadData();
-                downloadData.url = url;
-                downloadData.eTag = eTag;
+                var downloadData = Utils2.createDownloadData()
+                downloadData.url = url
+                downloadData.eTag = eTag
 
-                var downloadConferenceData = function(returnCode, httpRequest) {
-                    var result = null;
+                var downloadConferenceData = function (returnCode, httpRequest) {
+                    var result = null
                     if (returnCode === 0) {
-                        GlobalDataModel.conferenceJsonData = JSON.parse(httpRequest.responseText)
+                        GlobalDataModel.conferenceJsonData = JSON.parse(
+                                    httpRequest.responseText)
                         console.log("updated data model to " + GlobalDataModel.conferenceJsonData)
-                        var responseETag = httpRequest.getResponseHeader("ETag");
+                        var responseETag = httpRequest.getResponseHeader("ETag")
 
-                        result = Database.persistConferenceData(data, httpRequest.responseText, responseETag)
-                        data.isPersisted = true;
-                        var downloads = [];
-                        downloads.push('logo');
-                        downloads.push('speakers');
-                        performImageDownload(data, downloads);
-                        performSpeakerImagesDownload(data, httpRequest.responseText, downloads);
+                        result = Database.persistConferenceData(
+                                    data, httpRequest.responseText,
+                                    responseETag)
+                        data.isPersisted = true
+                        var downloads = []
+                        downloads.push('logo')
+                        downloads.push('speakers')
+                        performImageDownload(data, downloads)
+                        performSpeakerImagesDownload(data,
+                                                     httpRequest.responseText,
+                                                     downloads)
                     } else if (returnCode === 1) {
-                        result = qsTr("Conference data unchanged.");
-                        performImageDownload(data);
-                        performSpeakerImagesDownload(httpRequest.responseText);
+                        result = qsTr("Conference data unchanged.")
+                        performImageDownload(data)
+                        performSpeakerImagesDownload(httpRequest.responseText)
                     } else if (returnCode === 2) {
-                        result = qsTr("Connection error (HTTP:" + httpRequest.status + ")");
+                        result = qsTr(
+                                    "Connection error (HTTP:" + httpRequest.status + ")")
                     } else {
                         showText('Error occured : ' + error)
                     }
                     conferenceNotification.show(result)
-                };
+                }
 
-                var downloadService = Utils2.createDownloadService();
-                downloadService.execute(downloadData, downloadConferenceData);
+                var downloadService = Utils2.createDownloadService()
+                downloadService.execute(downloadData, downloadConferenceData)
 
+                //                console.log("Downloading conference data from URL : " + url)
+                //                console.log("Using request eTag : " + eTag)
 
+                //                var request = new XMLHttpRequest()
+                //                request.open('GET', url)
+                //                request.setRequestHeader('Content-Type',
+                //                                         'application/json;charset=utf-8')
+                //                request.setRequestHeader('If-None-Match', eTag)
+                //                request.onreadystatechange = function () {
+                //                    console.log(" download finished : ")
+                //                    if (request.readyState === XMLHttpRequest.DONE) {
+                //                        var headers = request.getAllResponseHeaders()
+                //                        var responseETag = request.getResponseHeader("ETag")
+                //                        console.log("Resposne ETag : " + responseETag)
+                //                        console.log("Resposne ETag : " + request.status)
+                //                        console.log("headers : " + headers)
 
+                //                        var result = null
+                //                        if (request.status
+                //                                && request.status === Constants.HTTP_OK) {
+                //                            console.log("response",
+                //                                        request.responseText.substring(0, 200))
 
+                //                            GlobalDataModel.conferenceJsonData = JSON.parse(
+                //                                        request.responseText)
 
-//                console.log("Downloading conference data from URL : " + url)
-//                console.log("Using request eTag : " + eTag)
+                //                            console.log("data model is now " + GlobalDataModel.conferenceJsonData)
 
-//                var request = new XMLHttpRequest()
-//                request.open('GET', url)
-//                request.setRequestHeader('Content-Type',
-//                                         'application/json;charset=utf-8')
-//                request.setRequestHeader('If-None-Match', eTag)
-//                request.onreadystatechange = function () {
-//                    console.log(" download finished : ")
-//                    if (request.readyState === XMLHttpRequest.DONE) {
-//                        var headers = request.getAllResponseHeaders()
-//                        var responseETag = request.getResponseHeader("ETag")
-//                        console.log("Resposne ETag : " + responseETag)
-//                        console.log("Resposne ETag : " + request.status)
-//                        console.log("headers : " + headers)
+                //                            result = Database.persistConferenceData(
+                //                                        data, request.responseText, eTag,
+                //                                        responseETag)
+                //                            data.isPersisted = true
+                //                        } else if (request.status
+                //                                   && request.status === Constants.HTTP_NOT_MODIFIED) {
+                //                            result = qsTr("Conference data unchanged.")
+                //                        } else {
+                //                            // showText("Failed to lookup conferences! HTTP error code was " + request.status + " (" + request.statusText +  ")" );
+                //                            console.log("HTTP:", request.status)
+                //                            console.log("responsedata : " + request.responseText)
+                //                            result = qsTr(
+                //                                        "Connection error (HTTP:" + request.status + ")")
+                //                        }
 
-//                        var result = null
-//                        if (request.status
-//                                && request.status === Constants.HTTP_OK) {
-//                            console.log("response",
-//                                        request.responseText.substring(0, 200))
+                //                        conferenceNotification.show(result)
 
-//                            GlobalDataModel.conferenceJsonData = JSON.parse(
-//                                        request.responseText)
+                //                        // when succussful start image download
+                //                        performImageDownload(data);
 
-//                            console.log("data model is now " + GlobalDataModel.conferenceJsonData)
+                ////                        console.log("hideBusyIndicator")
+                ////                        busyIndicator2.running = false
+                ////                        busyIndicator2.opacity = 0
+                ////                        opacity = 1
+                //                    }
+                //                }
 
-//                            result = Database.persistConferenceData(
-//                                        data, request.responseText, eTag,
-//                                        responseETag)
-//                            data.isPersisted = true
-//                        } else if (request.status
-//                                   && request.status === Constants.HTTP_NOT_MODIFIED) {
-//                            result = qsTr("Conference data unchanged.")
-//                        } else {
-//                            // showText("Failed to lookup conferences! HTTP error code was " + request.status + " (" + request.statusText +  ")" );
-//                            console.log("HTTP:", request.status)
-//                            console.log("responsedata : " + request.responseText)
-//                            result = qsTr(
-//                                        "Connection error (HTTP:" + request.status + ")")
-//                        }
-
-//                        conferenceNotification.show(result)
-
-
-//                        // when succussful start image download
-//                        performImageDownload(data);
-
-////                        console.log("hideBusyIndicator")
-////                        busyIndicator2.running = false
-////                        busyIndicator2.opacity = 0
-////                        opacity = 1
-//                    }
-//                }
-
-//                try {
-//                    request.send()
-//                } catch (error) {
-//                    showText('Error occured : ' + error)
-//                }
+                //                try {
+                //                    request.send()
+                //                } catch (error) {
+                //                    showText('Error occured : ' + error)
+                //                }
 
                 /*view.model.remove(index)*/
 
@@ -266,11 +285,12 @@ Page {
             }
 
             function performImageDownload(data, downloads) {
-                var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
-                var url = urlService.getConferenceImagesUrl(data);
+                var urlService = Utils2.createUrlService(
+                            Constants.CONFERENCES_URL, Constants.SINGLE)
+                var url = urlService.getConferenceImagesUrl(data)
                 // TODO try to fetch etag for images
                 // var eTag = Database.getETagForConferenceId(data.id)
-                var eTag = null;
+                var eTag = null
 
                 console.log("Downloading conference images from URL : " + url)
                 console.log("Using request eTag : " + eTag)
@@ -278,7 +298,7 @@ Page {
                 var request2 = new XMLHttpRequest()
                 request2.open('GET', url)
                 request2.setRequestHeader('Content-Type',
-                                         'application/json;charset=utf-8')
+                                          'application/json;charset=utf-8')
                 if (eTag) {
                     request.setRequestHeader('If-None-Match', eTag)
                 }
@@ -297,20 +317,21 @@ Page {
                             console.log("response",
                                         request2.responseText.substring(0, 200))
 
-//                            GlobalDataModel.conferenceJsonData = JSON.parse(
-//                                        request.responseText)
 
-//                            console.log("data model is now " + GlobalDataModel.conferenceJsonData)
+                            //                            GlobalDataModel.conferenceJsonData = JSON.parse(
+                            //                                        request.responseText)
 
+                            //                            console.log("data model is now " + GlobalDataModel.conferenceJsonData)
                             result = Database.persistConferenceImage(
-                                        data.id, 'conferenceImage', request2.responseText,
+                                        data.id, 'conferenceImage',
+                                        request2.responseText,
                                         responseETag, 'logo')
                             data.isPersisted = true
-                         //   performSpeakerImagesDownload(data);
+                            //   performSpeakerImagesDownload(data);
                         } else if (request2.status
                                    && request2.status === Constants.HTTP_NOT_MODIFIED) {
-                            result = qsTr("Conference data unchanged.");
-                           //  performSpeakerImagesDownload(data);
+                            result = qsTr("Conference data unchanged.")
+                            //  performSpeakerImagesDownload(data);
                         } else {
                             // showText("Failed to lookup conferences! HTTP error code was " + request.status + " (" + request.statusText +  ")" );
                             console.log("HTTP:", request2.status)
@@ -322,8 +343,7 @@ Page {
                         conferenceNotification.show(result)
 
 
-//                        downloads.pop();
-
+                        //                        downloads.pop();
                         if (downloads.length === 0) {
                             console.log("hideBusyIndicator")
                             // busyIndicator.visible = false
@@ -332,9 +352,8 @@ Page {
                             busyIndicator2.opacity = 0
                             opacity = 1
                         } else {
-                            console.log("other download is still running");
+                            console.log("other download is still running")
                         }
-
                     }
                 }
 
@@ -352,43 +371,46 @@ Page {
             }
 
             function performSpeakerImagesDownload(data, detailedConferenceDataString, downloads) {
-                var urlService = Utils2.createUrlService(Constants.CONFERENCES_URL, Constants.SINGLE);
-                var baseUrl = urlService.getSpeakerImagesUrl(data);
+                var urlService = Utils2.createUrlService(
+                            Constants.CONFERENCES_URL, Constants.SINGLE)
+                var baseUrl = urlService.getSpeakerImagesUrl(data)
 
-                var detailedConferenceData = JSON.parse(detailedConferenceDataString);
-                var speakers = detailedConferenceData.speakers;
+                var detailedConferenceData = JSON.parse(
+                            detailedConferenceDataString)
+                var speakers = detailedConferenceData.speakers
 
-//                var speakerIds = [];
 
-//                if (speakers !== undefined && speakers.length > 0) {
-//                    for (var i = 0; i < speakers.length; i++) {
-//                        if (speakers[i].photoId !== undefined) {
-//                            speakerIds.push(speakers[i].photoId);
-//                        }
-//                        console.log("Speaker : " + baseUrl + speakers[i].photoId);
-//                    }
-//                 }
+                //                var speakerIds = [];
 
-//                 console.log("number of speakers with image : " + speakerIds.length);
-//                for (var j = 0; j < speakerIds.length; j++) {
-//                    console.log("Speaker : " + baseUrl + speakerIds[j]);
-//                }
+                //                if (speakers !== undefined && speakers.length > 0) {
+                //                    for (var i = 0; i < speakers.length; i++) {
+                //                        if (speakers[i].photoId !== undefined) {
+                //                            speakerIds.push(speakers[i].photoId);
+                //                        }
+                //                        console.log("Speaker : " + baseUrl + speakers[i].photoId);
+                //                    }
+                //                 }
 
-                var manager = Utils2.createConferenceManager(detailedConferenceData);
-                var photoIdUrls = manager.getSpeakerPhotoIdUrls(baseUrl);
+                //                 console.log("number of speakers with image : " + speakerIds.length);
+                //                for (var j = 0; j < speakerIds.length; j++) {
+                //                    console.log("Speaker : " + baseUrl + speakerIds[j]);
+                //                }
+                var manager = Utils2.createConferenceManager(
+                            detailedConferenceData)
+                var photoIdUrls = manager.getSpeakerPhotoIdUrls(baseUrl)
 
                 console.log(photoIdUrls)
 
-//                speakerImagesLabel.visible = true;
 
-                speakerImageCanvas.visible = false; // true to debug
-                speakerImageCanvas.imagefiles = photoIdUrls;
-                speakerImageCanvas.currentIndex = 0;
-                speakerImageCanvas.imagefile = photoIdUrls[0];
-                speakerImageCanvas.loadImage(speakerImageCanvas.imagefile);
+                //                speakerImagesLabel.visible = true;
+                speakerImageCanvas.visible = false // true to debug
+                speakerImageCanvas.imagefiles = photoIdUrls
+                speakerImageCanvas.currentIndex = 0
+                speakerImageCanvas.imagefile = photoIdUrls[0]
+                speakerImageCanvas.loadImage(speakerImageCanvas.imagefile)
 
-//                downloads.pop();
 
+                //                downloads.pop();
                 if (downloads.length === 0) {
                     console.log("hideBusyIndicator")
                     // busyIndicator.visible = false
@@ -397,76 +419,74 @@ Page {
                     busyIndicator2.opacity = 0
                     opacity = 1
                 } else {
-                    console.log("other download is still running");
+                    console.log("other download is still running")
                 }
 
+                //                // TODO try to fetch etag for images
+                //                // var eTag = Database.getETagForConferenceId(data.id)
+                //                var eTag = null;
 
+                //                console.log("Downloading conference images from URL : " + url)
+                //                console.log("Using request eTag : " + eTag)
 
-//                // TODO try to fetch etag for images
-//                // var eTag = Database.getETagForConferenceId(data.id)
-//                var eTag = null;
+                //                var request2 = new XMLHttpRequest()
+                //                request2.open('GET', url)
+                //                request2.setRequestHeader('Content-Type',
+                //                                         'application/json;charset=utf-8')
+                //                if (eTag) {
+                //                    request.setRequestHeader('If-None-Match', eTag)
+                //                }
+                //                request2.onreadystatechange = function () {
+                //                    console.log(" download finished : ")
+                //                    if (request2.readyState === XMLHttpRequest.DONE) {
+                //                        var headers = request2.getAllResponseHeaders()
+                //                        var responseETag = request2.getResponseHeader("ETag")
+                //                        console.log("Resposne ETag : " + responseETag)
+                //                        console.log("Resposne ETag : " + request2.status)
+                //                        console.log("headers : " + headers)
 
-//                console.log("Downloading conference images from URL : " + url)
-//                console.log("Using request eTag : " + eTag)
+                //                        var result = null
+                //                        if (request2.status
+                //                                && request2.status === Constants.HTTP_OK) {
+                //                            console.log("response",
+                //                                        request2.responseText.substring(0, 200))
 
-//                var request2 = new XMLHttpRequest()
-//                request2.open('GET', url)
-//                request2.setRequestHeader('Content-Type',
-//                                         'application/json;charset=utf-8')
-//                if (eTag) {
-//                    request.setRequestHeader('If-None-Match', eTag)
-//                }
-//                request2.onreadystatechange = function () {
-//                    console.log(" download finished : ")
-//                    if (request2.readyState === XMLHttpRequest.DONE) {
-//                        var headers = request2.getAllResponseHeaders()
-//                        var responseETag = request2.getResponseHeader("ETag")
-//                        console.log("Resposne ETag : " + responseETag)
-//                        console.log("Resposne ETag : " + request2.status)
-//                        console.log("headers : " + headers)
+                ////                            GlobalDataModel.conferenceJsonData = JSON.parse(
+                ////                                        request.responseText)
 
-//                        var result = null
-//                        if (request2.status
-//                                && request2.status === Constants.HTTP_OK) {
-//                            console.log("response",
-//                                        request2.responseText.substring(0, 200))
+                ////                            console.log("data model is now " + GlobalDataModel.conferenceJsonData)
 
-////                            GlobalDataModel.conferenceJsonData = JSON.parse(
-////                                        request.responseText)
+                //                            result = Database.persistConferenceImage(
+                //                                        data.id, request2.responseText,
+                //                                        responseETag, 'logo')
+                //                            data.isPersisted = true
+                //                        } else if (request2.status
+                //                                   && request2.status === Constants.HTTP_NOT_MODIFIED) {
+                //                            result = qsTr("Conference data unchanged.")
+                //                        } else {
+                //                            // showText("Failed to lookup conferences! HTTP error code was " + request.status + " (" + request.statusText +  ")" );
+                //                            console.log("HTTP:", request2.status)
+                //                            console.log("responsedata : " + request2.responseText)
+                //                            result = qsTr(
+                //                                        "Connection error (HTTP:" + request2.status + ")")
+                //                        }
 
-////                            console.log("data model is now " + GlobalDataModel.conferenceJsonData)
+                //                        conferenceNotification.show(result)
 
-//                            result = Database.persistConferenceImage(
-//                                        data.id, request2.responseText,
-//                                        responseETag, 'logo')
-//                            data.isPersisted = true
-//                        } else if (request2.status
-//                                   && request2.status === Constants.HTTP_NOT_MODIFIED) {
-//                            result = qsTr("Conference data unchanged.")
-//                        } else {
-//                            // showText("Failed to lookup conferences! HTTP error code was " + request.status + " (" + request.statusText +  ")" );
-//                            console.log("HTTP:", request2.status)
-//                            console.log("responsedata : " + request2.responseText)
-//                            result = qsTr(
-//                                        "Connection error (HTTP:" + request2.status + ")")
-//                        }
+                //                        console.log("hideBusyIndicator")
+                //                        // busyIndicator.visible = false
+                //                        // busyIndicator.opacity = 1
+                //                        busyIndicator2.running = false
+                //                        busyIndicator2.opacity = 0
+                //                        opacity = 1
+                //                    }
+                //                }
 
-//                        conferenceNotification.show(result)
-
-//                        console.log("hideBusyIndicator")
-//                        // busyIndicator.visible = false
-//                        // busyIndicator.opacity = 1
-//                        busyIndicator2.running = false
-//                        busyIndicator2.opacity = 0
-//                        opacity = 1
-//                    }
-//                }
-
-//                try {
-//                    request2.send()
-//                } catch (error) {
-//                    showText('Error occured : ' + error)
-//                }
+                //                try {
+                //                    request2.send()
+                //                } catch (error) {
+                //                    showText('Error occured : ' + error)
+                //                }
 
                 /*view.model.remove(index)*/
 
@@ -475,22 +495,25 @@ Page {
                 // busyIndicator.opacity = 1;
             }
 
-
-
-
             // TODO rename the method -> also needed in the FirstPage.qml
             function addConference() {
+
+                performDownload();
+                if (1 == 1) {
+                    return;
+                }
+                // TODO remorseAction is executed multiple times......
+
                 remorseAction("Downloading Data", function () {
+
                     //busyIndicator.visible = true;
                     // busyIndicator.opacity = 0;
-
 
                     /*
                     busyIndicator2.running = true
                     busyIndicator2.opacity = 1
                     opacity = 0.4
                     */
-
                     console.log("showBusyIndicator")
 
                     delay(10, performDownload)
@@ -541,30 +564,77 @@ Page {
         VerticalScrollDecorator {
         }
 
-        Component.onCompleted: {
-            var conferenceListManager = Utils2.createConferenceListManager()
-            var persistedConferenceIds = Database.getPersistedConferenceIds()
-            conferenceListManager.fetchConferences(Constants.CONFERENCES_URL,
-                        function (status, sortedConferences) {
-                            console.log("conferences : " + sortedConferences)
-                            console.log("status : " + status)
+        function initDataResultHandler(result) {
+            console.log("result init data : " + result.substring(1, 80));
+        }
 
-                            if (sortedConferences !== null) {
-                                sortedConferences.forEach(function (element) {
-                                    console.log("confx : " + element.name + " - "
-                                                + element.startDate + " - ")
-                                    // var isAlreadyDownloaded = persistedConferenceIds.indexOf(element.id);
-                                    element.isPersisted = (persistedConferenceIds.indexOf(
-                                                               element.id) > -1)
-                                    // console.log("idx : " + element.id + " available : " + isAlreadyDownloaded);
-                                    console.log("persisted : " + element.isPersisted)
-                                    conferencesListModel.append(element)
-                                })
-                            } else {
-                                console.log("failed to Download conferences")
-                                console.log("failed to Download conferences - http status was " + status);
-                            }
-                        })
+        function imageResourcesResultHandler(result) {
+            console.log("result image resources : " + result.substring(1, 80));
+            // TODO etag
+            result = Database.persistConferenceImage(downloadConference.id, 'conferenceImage', result, "", 'logo')
+        }
+
+        function conferenceDataResultHandler(result) {
+            console.log("result conf data : " + result.substring(1, 80));
+            // TODO etag
+            result = Database.persistConferenceData(downloadConference, result, "");
+        }
+
+        function errorResultHandler(result) {
+            stockUpdateProblemNotification.show(result)
+            loaded = true;
+        }
+
+        Component.onCompleted: {
+            dukeconBackend.initDataResultAvailable.connect(initDataResultHandler);
+            dukeconBackend.imageResourcesResultAvailable.connect(imageResourcesResultHandler);
+            dukeconBackend.conferenceDataResultAvailable.connect(conferenceDataResultHandler);
+            dukeconBackend.requestError.connect(errorResultHandler);
+
+            var persistedConferenceIds = Database.getPersistedConferenceIds();
+
+            if (Constants.SINGLE) {
+                var conf = {};
+                conf.id = "javaland2020"
+                conf.name = "JavaLand 2020"
+                conf.startDate = "2020-03-17"
+                conf.endDate = "2020-03-19"
+                conf.homeTitle = null
+                conf.year = "2020"
+                conf.homeUrl = "http://www.javaland.eu"
+                conf.url = "http://javaland.dukecon.org/2020"
+                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                conferencesListModel.append(conf)
+            } else {
+                var conferenceListManager = Utils2.createConferenceListManager()
+                conferenceListManager.fetchConferences(
+                            Constants.CONFERENCES_URL,
+                            function (status, sortedConferences) {
+                                console.log("conferences : " + sortedConferences)
+                                console.log("status : " + status)
+
+                                if (sortedConferences !== null) {
+                                    sortedConferences.forEach(
+                                                function (element) {
+                                                    console.log("confx : " + element.name + " - "
+                                                                + element.startDate + " - ")
+                                                    // var isAlreadyDownloaded = persistedConferenceIds.indexOf(element.id);
+                                                    element.isPersisted
+                                                            = (persistedConferenceIds.indexOf(
+                                                                   element.id) > -1)
+                                                    // console.log("idx : " + element.id + " available : " + isAlreadyDownloaded);
+                                                    console.log("persisted : "
+                                                                + element.isPersisted)
+                                                    conferencesListModel.append(
+                                                                element)
+                                                })
+                                } else {
+                                    console.log("failed to Download conferences")
+                                    console.log("failed to Download conferences - http status was "
+                                                + status)
+                                }
+                            })
+            }
 
             //            var manager = Utils2.createConferenceManager(Data.javaforum2016);
             //            var sbModelItem = manager.getTracksForEventDayAsSelectBoxModelItems(selectedDate);
@@ -572,6 +642,7 @@ Page {
             //                trackListModel.append(element);
             //            });
         }
+
     }
 
     LoadingIndicator {
@@ -592,4 +663,5 @@ Page {
         size: BusyIndicatorSize.Large
         z: 1
     }
+
 }
