@@ -17,7 +17,7 @@ var CONFERENCE_LOGO = 'conferenceImage';
 
 // default endpoint for the conferences (basically the starting point)
 var CONFERENCES_URL = 'https://latest.dukecon.org/conferences';
-var SINGLE = false;
+var SINGLE = true;
 // dukecon_server demo conference - start with 'mvn spring-boot:run -Dserver.port=8083'
 // you need to add you local ip address to make sure the vb image can access the server
 //var CONFERENCES_URL = 'http://192.168.123.128:8083/rest/conferences';
