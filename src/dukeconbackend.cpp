@@ -55,6 +55,16 @@ QNetworkReply *DukeconBackend::executeGetRequest(const QUrl &url) {
     return manager->get(request);
 }
 
+QNetworkReply *DukeconBackend::executeGetRequestNonJson(const QUrl &url) {
+    qDebug() << "DukeconBackend::executeGetRequest " << url;
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, MIME_TYPE_JSON);
+    // TODO ETAG
+
+    return manager->get(request);
+}
+
+
 void DukeconBackend::downloadAllData(const bool singleConference, const QString &conferenceId, const QString &etag) {
     qDebug() << "DukeconBackend::downloadConferenceData";
 
@@ -87,31 +97,6 @@ void DukeconBackend::handleInitDataFinished() {
 
     QUrl confDataUrl;
     if (this->singleConference) {
-      confDataUrl = QUrl(SINGLE_CONF_DATA_URL);
-    } else {
-        // TODO
-    }
-
-    // TODO etag
-    reply = executeGetRequest(confDataUrl);
-
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
-    connect(reply, SIGNAL(finished()), this, SLOT(handleConferenceDataFinished()), Qt::UniqueConnection);
-}
-
-void DukeconBackend::handleConferenceDataFinished() {
-    qDebug() << "DukeconBackend::handleConferenceDataFinished";
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
-    reply->deleteLater();
-    if (reply->error() != QNetworkReply::NoError) {
-        return;
-    }
-
-    getEtagValue(reply);
-    emit conferenceDataResultAvailable(processResponses(reply->readAll()));
-
-    QUrl confDataUrl;
-    if (this->singleConference) {
       confDataUrl = QUrl(SINGLE_IMAGE_RESOURCES_URL);
     } else {
         // TODO
@@ -133,7 +118,94 @@ void DukeconBackend::handleImagesResourcesFinished() {
     }
 
     emit imageResourcesResultAvailable(processResponses(reply->readAll()));
+
+    QUrl confDataUrl;
+    if (this->singleConference) {
+      confDataUrl = QUrl(SINGLE_CONF_DATA_URL);
+    } else {
+        // TODO
+    }
+
+    // TODO etag
+    reply = executeGetRequestNonJson(confDataUrl);
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
+    connect(reply, SIGNAL(finished()), this, SLOT(handleConferenceDataFinished()), Qt::UniqueConnection);
 }
+
+
+void DukeconBackend::handleConferenceDataFinished() {
+    qDebug() << "DukeconBackend::handleConferenceDataFinished";
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    reply->deleteLater();
+    if (reply->error() != QNetworkReply::NoError) {
+        return;
+    }
+
+    getEtagValue(reply);
+    const QByteArray responseData = reply->readAll();
+    emit conferenceDataResultAvailable(processResponses(responseData));
+
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
+    QJsonObject rootObject = jsonDocument.object();
+    QJsonArray speakersArray = rootObject["speakers"].toArray();
+
+//    QJsonDocument resultDocument;
+//    QJsonArray resultArray;
+    // QList<QString> photoIds;
+
+    foreach (const QJsonValue &speaker, speakersArray) {
+        QJsonObject speakerObject = speaker.toObject();
+        QString photoId = speakerObject["photoId"].toString();
+        if (!photoId.isEmpty()) {
+            this->photoIds.append(photoId);
+//            photoIds.append();
+        }
+    }
+
+    qDebug() << "photoIds found : " << photoIds.length();
+
+    fetchPhotoImages();
+}
+
+void DukeconBackend::fetchPhotoImages() {
+    if (photoIds.length() > 0) {
+        this->currentPhotoId = photoIds.first();
+        photoIds.removeFirst();
+
+        QUrl photoIdUrl;
+        if (this->singleConference) {
+          photoIdUrl = QUrl(SINGLE_IMAGES_BASE_URL + this->currentPhotoId);
+        } else {
+            // TODO
+        }
+
+        // TODO etag
+        QNetworkReply *reply = executeGetRequest(photoIdUrl);
+        connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
+        connect(reply, SIGNAL(finished()), this, SLOT(handlePhotoIdFinished()), Qt::UniqueConnection);
+    } else {
+        this->currentPhotoId = nullptr;
+    }
+}
+
+void DukeconBackend::handlePhotoIdFinished() {
+    qDebug() << "DukeconBackend::handlePhotoIdFinished";
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    reply->deleteLater();
+    if (reply->error() != QNetworkReply::NoError) {
+        return;
+    }
+
+    QByteArray imageByteArray(reply->readAll());
+    //QString imageAsBase64 = QString();
+    QByteArray photoAsBase64ByteArray = imageByteArray.toBase64();
+    //qDebug() << "DukeconBackend::handlePhotoIdFinished - imagebase64 : " << imageAsBase64.left(imageAsBase64.length() > 80 ? 80 : imageAsBase64.length());
+
+    emit speakerImageResultAvailable("data:image/png;base64," + processResponses(photoAsBase64ByteArray), this->currentPhotoId);
+
+    fetchPhotoImages();
+}
+
 
 QString DukeconBackend::processResponses(QByteArray searchReply) {
     QString result = QString(searchReply);

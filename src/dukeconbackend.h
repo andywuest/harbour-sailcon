@@ -23,9 +23,10 @@ public:
     Q_INVOKABLE void downloadAllData(const bool singleConference, const QString &conferenceId, const QString &etag);
 
     // signals for the qml part
-    Q_SIGNAL void initDataResultAvailable(const QString & reply);
-    Q_SIGNAL void imageResourcesResultAvailable(const QString & reply);
-    Q_SIGNAL void conferenceDataResultAvailable(const QString & reply);
+    Q_SIGNAL void initDataResultAvailable(const QString &reply);
+    Q_SIGNAL void imageResourcesResultAvailable(const QString &reply);
+    Q_SIGNAL void conferenceDataResultAvailable(const QString &reply);
+    Q_SIGNAL void speakerImageResultAvailable(const QString &reply, const QString &photoId);
     Q_SIGNAL void requestError(const QString &errorMessage);
 
 signals:
@@ -35,23 +36,29 @@ public slots:
 private:
 
     bool singleConference = false;
+    QString currentPhotoId;
+    QList<QString> photoIds;
 
     QString applicationName;
     QString applicationVersion;
     QNetworkAccessManager *manager;
 
     QNetworkReply *executeGetRequest(const QUrl &url);
+    QNetworkReply *executeGetRequestNonJson(const QUrl &url);
+
 
     // is triggered after name search because the first json request does not contain all information we need
 //    void searchQuoteForNameSearch(const QString &searchString);
     QString processResponses(QByteArray searchReply);
     QString getEtagValue(QNetworkReply *reply);
+    void fetchPhotoImages();
 
 private slots:
     void handleRequestError(QNetworkReply::NetworkError error);
     void handleInitDataFinished();
     void handleImagesResourcesFinished();
     void handleConferenceDataFinished();
+    void handlePhotoIdFinished();
 
 //    void handleSearchQuoteForNameFinished();
 //    void handleSearchQuoteFinished();
