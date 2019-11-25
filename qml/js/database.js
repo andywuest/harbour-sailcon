@@ -177,10 +177,10 @@ function persistConferenceImage(conferenceId, resourceType, newContent, eTag, re
                         'SELECT * FROM conference_resources order by rowid desc')
             if (results.rows.length > 0) {
                 console.log("conference_resources column count : " + results.rows.length);
-                for (var i = 0; i < results.rows.length; i++) {
-                    var row = results.rows.item(i);
-                    console.log("[conference_resource] pk is : " + row.conferenceId + "/" + row.resourceId + "/" + row.resourceType);
-                }
+//                for (var i = 0; i < results.rows.length; i++) {
+//                    var row = results.rows.item(i);
+//                    console.log("[conference_resource] pk is : " + row.conferenceId + "/" + row.resourceId + "/" + row.resourceType);
+//                }
             }
         })
 
