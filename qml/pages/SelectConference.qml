@@ -580,6 +580,11 @@ Page {
             result = Database.persistConferenceData(downloadConference, result, "");
         }
 
+        function speakerImageResultHandler(result, photoId) {
+            console.log("result speaker iamge : " + result.substring(1, 80));
+            Database.persistConferenceImage(downloadConference.id, 'speakerImage', result, "", photoId);
+        }
+
         function errorResultHandler(result) {
             stockUpdateProblemNotification.show(result)
             loaded = true;
@@ -589,20 +594,21 @@ Page {
             dukeconBackend.initDataResultAvailable.connect(initDataResultHandler);
             dukeconBackend.imageResourcesResultAvailable.connect(imageResourcesResultHandler);
             dukeconBackend.conferenceDataResultAvailable.connect(conferenceDataResultHandler);
+            dukeconBackend.speakerImageResultAvailable.connect(speakerImageResultHandler);
             dukeconBackend.requestError.connect(errorResultHandler);
 
             var persistedConferenceIds = Database.getPersistedConferenceIds();
 
             if (Constants.SINGLE) {
                 var conf = {};
-                conf.id = "javaland2020"
-                conf.name = "JavaLand 2020"
-                conf.startDate = "2020-03-17"
-                conf.endDate = "2020-03-19"
+                conf.id = "javaland2019"
+                conf.name = "JavaLand 2019"
+                conf.startDate = "2020-03-17" // FIXME
+                conf.endDate = "2020-03-19" // FIXME
                 conf.homeTitle = null
-                conf.year = "2020"
+                conf.year = "2019"
                 conf.homeUrl = "http://www.javaland.eu"
-                conf.url = "http://javaland.dukecon.org/2020"
+                conf.url = "http://javaland.dukecon.org/2019"
                 conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
                 conferencesListModel.append(conf)
             } else {
