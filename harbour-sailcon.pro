@@ -47,36 +47,36 @@ TRANSLATIONS += \
     translations/harbour-sailcon-de.ts
 
 DISTFILES += \
-    qml/pages/Third.qml \
     js/pages/logic.js \
-    qml/pages/Talk.qml \
-    qml/pages/TalkSettings.qml \
+    js/pages/constants.js \
+    js/pages/database.js \
     js/pages/utils.js \
     js/pages/jfs2016.js \
+    js/pages/utils2.js \
+    qml/pages/Third.qml \
+    qml/pages/Talk.qml \
+    qml/pages/TalkSettings.qml \
     qml/pages/ExploreByDay.qml \
     qml/pages/ExploreByDayAndTime.qml \
     qml/pages/ExplorationTypeSelection.qml \
     qml/pages/ExploreByTrack.qml \
     qml/pages/Talks.qml \
-    js/pages/utils2.js \
     qml/pages/ExploreByTime.qml \
     qml/pages/ExploreByLocation.qml \
     qml/pages/ExploreByAudience.qml \
     qml/pages/TalkOld.qml \
     qml/pages/SelectConference.qml \
-    qml/pages/LoadingIndicator.qml \
     qml/pages/GlobalDataModel.qml \
     qml/pages/qmldir \
     qml/pages/TODO.txt \
-    js/pages/constants.js \
     images/j.png \
     images/UnknownUser.png \
     images/social_xing.svg \
-    qml/components/AppNotification.qml \
-    qml/components/AppNotificationItem.qml \
-    js/pages/database.js \
+    qml/components/thirdparty/AppNotification.qml \
+    qml/components/thirdparty/AppNotificationItem.qml \
+    qml/components/thirdparty/LabelText.qml \
+    qml/components/thirdparty/LoadingIndicator.qml \
     qml/pages/About.qml \
-    qml/components/LabelText.qml \
     qml/components/Speaker.qml \
     qml/pages/Settings.qml \
     qml/components/DownloadProgressIndicator.qml \
