@@ -27,6 +27,8 @@ public:
     Q_SIGNAL void imageResourcesResultAvailable(const QString &reply);
     Q_SIGNAL void conferenceDataResultAvailable(const QString &reply);
     Q_SIGNAL void speakerImageResultAvailable(const QString &reply, const QString &photoId);
+    Q_SIGNAL void subLoadingLabelAvailable(const QString &reply);
+    Q_SIGNAL void loadingDataFinished();
     Q_SIGNAL void requestError(const QString &errorMessage);
 
 signals:
@@ -36,6 +38,7 @@ public slots:
 private:
 
     bool singleConference = false;
+    int speakerImageCount = -1;
     QString currentPhotoId;
     QList<QString> photoIds;
 
@@ -52,6 +55,7 @@ private:
     QString processResponses(QByteArray searchReply);
     QString getEtagValue(QNetworkReply *reply);
     void fetchPhotoImages();
+    void cleanupDownloadData();
 
 private slots:
     void handleRequestError(QNetworkReply::NetworkError error);
