@@ -77,6 +77,8 @@ void DukeconBackend::downloadAllData(const bool singleConference, const QString 
         // TODO
     }
 
+    emit subLoadingLabelAvailable(QString(tr("Init Data")));
+
     // TODO etag
     QNetworkReply *reply = executeGetRequest(initUrl);
 
@@ -102,6 +104,8 @@ void DukeconBackend::handleInitDataFinished() {
         // TODO
     }
 
+    emit subLoadingLabelAvailable(QString(tr("Image Resources")));
+
     // TODO etag
     reply = executeGetRequest(confDataUrl);
 
@@ -126,8 +130,11 @@ void DukeconBackend::handleImagesResourcesFinished() {
         // TODO
     }
 
+    emit subLoadingLabelAvailable(QString(tr("Conference Data")));
+
     // TODO etag
     reply = executeGetRequestNonJson(confDataUrl);
+
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
     connect(reply, SIGNAL(finished()), this, SLOT(handleConferenceDataFinished()), Qt::UniqueConnection);
 }
@@ -145,24 +152,19 @@ void DukeconBackend::handleConferenceDataFinished() {
     const QByteArray responseData = reply->readAll();
     emit conferenceDataResultAvailable(processResponses(responseData));
 
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
-    QJsonObject rootObject = jsonDocument.object();
-    QJsonArray speakersArray = rootObject["speakers"].toArray();
-
-//    QJsonDocument resultDocument;
-//    QJsonArray resultArray;
-    // QList<QString> photoIds;
+    const QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
+    const QJsonObject rootObject = jsonDocument.object();
+    const QJsonArray speakersArray = rootObject["speakers"].toArray();
 
     foreach (const QJsonValue &speaker, speakersArray) {
-        QJsonObject speakerObject = speaker.toObject();
-        QString photoId = speakerObject["photoId"].toString();
+        const QJsonObject speakerObject = speaker.toObject();
+        const QString photoId = speakerObject["photoId"].toString();
         if (!photoId.isEmpty()) {
             this->photoIds.append(photoId);
-//            photoIds.append();
         }
     }
 
-    qDebug() << "photoIds found : " << photoIds.length();
+    this->speakerImageCount = photoIds.length();
 
     fetchPhotoImages();
 }
@@ -179,13 +181,24 @@ void DukeconBackend::fetchPhotoImages() {
             // TODO
         }
 
+        emit subLoadingLabelAvailable(QString(tr("Speaker Image (%1/%2)"))
+                                      .arg(speakerImageCount - photoIds.length())
+                                      .arg(this->speakerImageCount));
+
         // TODO etag
         QNetworkReply *reply = executeGetRequest(photoIdUrl);
         connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
         connect(reply, SIGNAL(finished()), this, SLOT(handlePhotoIdFinished()), Qt::UniqueConnection);
     } else {
-        this->currentPhotoId = nullptr;
+        cleanupDownloadData();
+        emit loadingDataFinished();
     }
+}
+
+void DukeconBackend::cleanupDownloadData() {
+    this->speakerImageCount = -1;
+    this->photoIds.clear();
+    this->currentPhotoId = nullptr;
 }
 
 void DukeconBackend::handlePhotoIdFinished() {
@@ -222,6 +235,8 @@ QString DukeconBackend::getEtagValue(QNetworkReply *reply) {
 void DukeconBackend::handleRequestError(QNetworkReply::NetworkError error) {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
     qWarning() << "DukeconBackend::handleRequestError:" << (int)error << reply->errorString() << reply->readAll();
+
+    cleanupDownloadData();
 
     emit requestError("Return code: " + QString::number((int)error) + " - " + reply->errorString());
 }
