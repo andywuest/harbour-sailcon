@@ -23,7 +23,7 @@ class DukeconBackend : public QObject {
 public:
     explicit DukeconBackend(QNetworkAccessManager *manager, const QString &applicationName, const QString applicationVersion, QObject *parent = 0);
     ~DukeconBackend();
-    Q_INVOKABLE void downloadAllData(const bool singleConference, const QString &conferenceId, const QString &etag);
+    Q_INVOKABLE void downloadAllData(const bool singleConference, const QString &conferenceId);
 
     // signals for the qml part
 //    Q_SIGNAL void initDataResultAvailable(const QString &reply);
@@ -34,7 +34,7 @@ public:
     Q_SIGNAL void loadingDataFinished();
     Q_SIGNAL void requestError(const QString &errorMessage);
 
-    QString databasePath; // TODO setter
+    //QString databasePath; // TODO setter
 
 signals:
 
@@ -42,6 +42,7 @@ public slots:
 
 private:
 
+    QSqlDatabase db;
     bool singleConference = false;
     int speakerImageCount = -1;
     QString currentPhotoId;
@@ -58,6 +59,7 @@ private:
 
     // is triggered after name search because the first json request does not contain all information we need
 //    void searchQuoteForNameSearch(const QString &searchString);
+    void initializeDatabase();
     QString processResponses(QByteArray searchReply);
     QString getEtagValue(QNetworkReply *reply);
     void persistConferenceData(QMap<QString, QString> dataMap);

@@ -16,6 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "dukeconbackend.h"
+#include <sailfishapp.h>
 
 #include <QDebug>
 #include <QFile>
@@ -31,6 +32,8 @@
 #include <QSqlError>
 #include <QSqlQueryModel>
 #include <QCryptographicHash>
+#include <QCoreApplication>
+#include <QQmlApplicationEngine>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusInterface>
 
@@ -44,6 +47,8 @@ DukeconBackend::DukeconBackend(QNetworkAccessManager *manager, const QString &ap
     this->manager = manager;
     this->applicationName = applicationName;
     this->applicationVersion = applicationVersion;
+
+    db = QSqlDatabase::addDatabase("QSQLITE");
 }
 
 DukeconBackend::~DukeconBackend() {
@@ -69,7 +74,7 @@ QNetworkReply *DukeconBackend::executeGetRequestNonJson(const QUrl &url) {
 }
 
 
-void DukeconBackend::downloadAllData(const bool singleConference, const QString &conferenceId, const QString &etag) {
+void DukeconBackend::downloadAllData(const bool singleConference, const QString &conferenceId) {
     qDebug() << "DukeconBackend::downloadConferenceData";
 
     this->singleConference = singleConference;
@@ -114,12 +119,10 @@ void DukeconBackend::handleInitDataFinished() {
     dataMap.insert("startDate", rootObject["startDate"].toString());
     dataMap.insert("endDate", rootObject["endDate"].toString());
     dataMap.insert("state", "ACTIVE");
-//    dataMap.insert("etag", etag);
-//    dataMap.insert("content", ""); // TODO
+    //    dataMap.insert("etag", etag);
+    //    dataMap.insert("content", ""); // TODO
 
     persistConferenceData(dataMap);
-
-//    emit initDataResultAvailable(processResponses(reply->readAll()));
 
     QUrl confDataUrl;
     if (this->singleConference) {
@@ -151,8 +154,6 @@ void DukeconBackend::handleImagesResourcesFinished() {
     dataMap.insert("content", QString(reply->readAll()));
     persistConferenceResource(dataMap);
 
-//    emit imageResourcesResultAvailable(processResponses(reply->readAll()));
-
     QUrl confDataUrl;
     if (this->singleConference) {
         confDataUrl = QUrl(SINGLE_CONF_DATA_URL);
@@ -182,11 +183,11 @@ void DukeconBackend::handleConferenceDataFinished() {
     const QByteArray responseData = reply->readAll();
 
     QMap<QString, QString> dataMap = getBaseConferenceData(this->currentConferenceId);
-//    dataMap.insert("name", rootObject["name"].toString());
-//    dataMap.insert("year", rootObject["year"].toString());
-//    dataMap.insert("startDate", rootObject["startDate"].toString());
-//    dataMap.insert("endDate", rootObject["endDate"].toString());
-//    dataMap.insert("state", "ACTIVE");
+    //    dataMap.insert("name", rootObject["name"].toString());
+    //    dataMap.insert("year", rootObject["year"].toString());
+    //    dataMap.insert("startDate", rootObject["startDate"].toString());
+    //    dataMap.insert("endDate", rootObject["endDate"].toString());
+    //    dataMap.insert("state", "ACTIVE");
     dataMap.insert("etag", etag);
     dataMap.insert("content", QString(responseData));
 
@@ -265,8 +266,6 @@ void DukeconBackend::handlePhotoIdFinished() {
 
     persistConferenceResource(dataMap);
 
-//    emit speakerImageResultAvailable("data:image/png;base64," + processResponses(photoAsBase64ByteArray), this->currentPhotoId);
-
     fetchPhotoImages();
 }
 
@@ -283,9 +282,24 @@ QString DukeconBackend::getEtagValue(QNetworkReply *reply) {
     return etag;
 }
 
+void DukeconBackend::initializeDatabase() {
+    if (db.databaseName().isEmpty()) {
+        QQmlApplicationEngine engine;
+        qDebug() << "path : " << engine.offlineStoragePath();
+
+        // https://lists.qt-project.org/pipermail/interest/2016-March/021316.html
+        QString path(engine.offlineStoragePath() + "/Databases/"
+                     +QCryptographicHash::hash("DukeConApp", QCryptographicHash::Md5).toHex()
+                     +".sqlite");
+
+        qDebug() << "path : " << path;
+
+        db.setDatabaseName(path);
+    }
+}
+
 QMap<QString, QString> DukeconBackend::getBaseConferenceResource(QString conferenceId, QString resourceId) {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(databasePath);
+    initializeDatabase();
 
     QMap<QString, QString> dataMap;
     dataMap.insert("conferenceId", conferenceId);
@@ -306,7 +320,7 @@ QMap<QString, QString> DukeconBackend::getBaseConferenceResource(QString confere
         qDebug() << "siezu : " << query.size();
 
         if (query.next()) {
-//            dataMap.insert("conferenceId", query.value("conferenceId").toString());
+            //            dataMap.insert("conferenceId", query.value("conferenceId").toString());
             // dataMap.insert("resourceId", query.value("resourceId").toString());
             dataMap.insert("resourceType", query.value("resourceType").toString());
             dataMap.insert("etag", query.value("etag").toString());
@@ -323,16 +337,15 @@ QMap<QString, QString> DukeconBackend::getBaseConferenceResource(QString confere
 }
 
 QMap<QString, QString> DukeconBackend::getBaseConferenceData(QString conferenceId) {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(databasePath);
+    initializeDatabase();
 
     QMap<QString, QString> dataMap;
     dataMap.insert("id", conferenceId);
 
     if(db.open()){
         QSqlQuery query;
-//        query.prepare("SELECT id, name, year, startDate, endDate, content, etag, state FROM conference WHERE id LIKE :conferenceId");
-//        query.bindValue(":conferenceId", conferenceId);
+        //        query.prepare("SELECT id, name, year, startDate, endDate, content, etag, state FROM conference WHERE id LIKE :conferenceId");
+        //        query.bindValue(":conferenceId", conferenceId);
         query.prepare("SELECT id, name, year, startDate, endDate, content, etag, state FROM conference WHERE id LIKE :conferenceId");
         query.bindValue(":conferenceId", conferenceId);
         if (query.exec()) {
@@ -369,8 +382,7 @@ QMap<QString, QString> DukeconBackend::getBaseConferenceData(QString conferenceI
 }
 
 void DukeconBackend::persistConferenceResource(QMap<QString, QString> dataMap) {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(databasePath);
+    initializeDatabase();
 
     if(db.open()){
         QSqlQuery query;
@@ -394,8 +406,7 @@ void DukeconBackend::persistConferenceResource(QMap<QString, QString> dataMap) {
 }
 
 void DukeconBackend::persistConferenceData(QMap<QString, QString> dataMap) {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(databasePath);
+    initializeDatabase();
 
     if(db.open()){
         QSqlQuery query;
@@ -418,16 +429,16 @@ void DukeconBackend::persistConferenceData(QMap<QString, QString> dataMap) {
         db.commit();
         db.close();
 
-//        QSqlQueryModel* modal = new QSqlQueryModel();
-//        QSqlQuery *query = new QSqlQuery(db);
-//        query->prepare("Select id, name FROM conference");
-//        query->exec();
+        //        QSqlQueryModel* modal = new QSqlQueryModel();
+        //        QSqlQuery *query = new QSqlQuery(db);
+        //        query->prepare("Select id, name FROM conference");
+        //        query->exec();
 
-//        while (query->next()) {
-//            QString id = query->value(0).toString();
-//            QString name = query->value(1).toString();
-//            qDebug() << name << id;
-//        }
+        //        while (query->next()) {
+        //            QString id = query->value(0).toString();
+        //            QString name = query->value(1).toString();
+        //            qDebug() << name << id;
+        //        }
     } else{
         qDebug() << "Cant open DB";
     }
@@ -441,8 +452,4 @@ void DukeconBackend::handleRequestError(QNetworkReply::NetworkError error) {
 
     emit requestError("Return code: " + QString::number((int)error) + " - " + reply->errorString());
 }
-
-
-
-
 
