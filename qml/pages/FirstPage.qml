@@ -408,7 +408,7 @@ Page {
                                          name: "noConf",
                                          label: qsTr(
                                                     "please select conference"),
-                                         state: 1,
+                                         state: Constants.CONFERENCE_ACTIVE,
                                          stateLabel: "active conference"
                                      })
                     }
