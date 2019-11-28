@@ -145,6 +145,12 @@ void DukeconBackend::handleImagesResourcesFinished() {
         return;
     }
 
+    QString etag = getEtagValue(reply);
+    QMap<QString, QString> dataMap = getBaseConferenceResource(this->currentConferenceId, "conferenceImage");
+    dataMap.insert("etag", etag);
+    dataMap.insert("content", QString(reply->readAll()));
+    persistConferenceResource(dataMap);
+
 //    emit imageResourcesResultAvailable(processResponses(reply->readAll()));
 
     QUrl confDataUrl;
@@ -246,12 +252,16 @@ void DukeconBackend::handlePhotoIdFinished() {
         return;
     }
 
+    QString etag = getEtagValue(reply);
+
     QByteArray imageByteArray(reply->readAll());
     //QString imageAsBase64 = QString();
     QByteArray photoAsBase64ByteArray = imageByteArray.toBase64();
     //qDebug() << "DukeconBackend::handlePhotoIdFinished - imagebase64 : " << imageAsBase64.left(imageAsBase64.length() > 80 ? 80 : imageAsBase64.length());
 
-    QMap<QString, QString> dataMap = getBaseConferenceResource(this->currentPhotoId);
+    QMap<QString, QString> dataMap = getBaseConferenceResource(this->currentConferenceId, this->currentPhotoId);
+    dataMap.insert("etag", etag);
+    dataMap.insert("content", QString("data:image/png;base64," + photoAsBase64ByteArray));
 
     persistConferenceResource(dataMap);
 
@@ -273,16 +283,18 @@ QString DukeconBackend::getEtagValue(QNetworkReply *reply) {
     return etag;
 }
 
-QMap<QString, QString> DukeconBackend::getBaseConferenceResource(QString resourceId) {
+QMap<QString, QString> DukeconBackend::getBaseConferenceResource(QString conferenceId, QString resourceId) {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(databasePath);
 
     QMap<QString, QString> dataMap;
+    dataMap.insert("conferenceId", conferenceId);
     dataMap.insert("resourceId", resourceId);
 
     if(db.open()){
         QSqlQuery query;
-        query.prepare("SELECT conferenceId, resourceId, resourceType, etag FROM conference_resources WHERE resourceId LIKE :resourceId");
+        query.prepare("SELECT conferenceId, resourceId, resourceType, etag FROM conference_resources WHERE conferenceId LIKE :conferenceId AND resourceId LIKE :resourceId");
+        query.bindValue(":conferenceId", conferenceId);
         query.bindValue(":resourceId", resourceId);
 
         if (query.exec()) {
@@ -294,7 +306,7 @@ QMap<QString, QString> DukeconBackend::getBaseConferenceResource(QString resourc
         qDebug() << "siezu : " << query.size();
 
         if (query.next()) {
-            dataMap.insert("conferenceId", query.value("conferenceId").toString());
+//            dataMap.insert("conferenceId", query.value("conferenceId").toString());
             // dataMap.insert("resourceId", query.value("resourceId").toString());
             dataMap.insert("resourceType", query.value("resourceType").toString());
             dataMap.insert("etag", query.value("etag").toString());

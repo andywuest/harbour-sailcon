@@ -63,7 +63,7 @@ private:
     void persistConferenceData(QMap<QString, QString> dataMap);
     void persistConferenceResource(QMap<QString, QString> dataMap);
     QMap<QString, QString> getBaseConferenceData(QString conferenceId);
-    QMap<QString, QString> getBaseConferenceResource(QString resourceId);
+    QMap<QString, QString> getBaseConferenceResource(QString conferenceId, QString resourceId);
     void fetchPhotoImages();
     void cleanupDownloadData();
 
