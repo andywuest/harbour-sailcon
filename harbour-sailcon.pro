@@ -15,9 +15,8 @@ TARGET = harbour-sailcon
 
 CONFIG += sailfishapp
 
-QT += sql
-# \
-#     qca-qt5
+QT += sql \
+    core
 
 SOURCES += src/harbour-sailcon.cpp \
     src/dukeconbackend.cpp \
