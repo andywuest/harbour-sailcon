@@ -32,7 +32,7 @@ function initApplicationTables() {
         db.transaction(function (tx) {
             tx.executeSql(
                         'CREATE TABLE IF NOT EXISTS conference'
-                        + ' (id text, name text, year text, url text, homeUrl text, startDate text, endDate text, state integer, content text, etag text, PRIMARY KEY(id))')
+                        + ' (id text, name text, year text, url text, homeUrl text, startDate text, endDate text, state text, content text, etag text, PRIMARY KEY(id))')
             tx.executeSql(
                         'CREATE TABLE IF NOT EXISTS talk'
                         + ' (talkId INTEGER NOT NULL, favorite BOOLEAN NOT NULL DEFAULT false, rated BOOLEAN NOT NULL DEFAULT false, rating INTEGER)')
