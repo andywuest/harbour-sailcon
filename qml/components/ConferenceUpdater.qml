@@ -16,7 +16,7 @@ Item {
 
     function downloadConferenceData(data) {
         if (Constants.SINGLE) {
-            dukeconBackend.downloadAllData(Constants.SINGLE, data.id, null)
+            dukeconBackend.downloadAllData(Constants.SINGLE, data.id)
             return
         }
     }
