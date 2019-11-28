@@ -33,6 +33,12 @@
 #endif
 
 #include <sailfishapp.h>
+#include <QCoreApplication>
+#include <QTextStream>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQueryModel>
+#include <QCryptographicHash>
 
 #include "sailcon.h"
 
@@ -46,7 +52,43 @@ int main(int argc, char *argv[]) {
     DukeconBackend *dukeconBackend = sailcon.getDukeconBackend();
     context->setContextProperty("dukeconBackend", dukeconBackend);
 
+
     view->setSource(SailfishApp::pathTo("qml/harbour-sailcon.qml"));
     view->show();
+
+    QQmlApplicationEngine engine;
+    engine.load(SailfishApp::pathTo("qml/harbour-sailcon.qml"));
+    qDebug() << "path : " << engine.offlineStoragePath();
+
+//    QSqlDatabase mydb = QSqlDatabase::addDatabase("QSQLITE");
+
+    QString path(engine.offlineStoragePath() + "/Databases/"
+                 +"fe1a06570e719120f387fac6ba8172a8"
+                 +".sqlite");
+
+    qDebug() << "path : " << path;
+
+    dukeconBackend->databasePath = path;
+
+
+  //  mydb.setDatabaseName(path);
+
+//    if(!mydb.open()){
+//      qDebug() << "Cant open DB";
+//    }
+//    else{
+//        qDebug() << "DB successfully opened";
+//    }
+//    QSqlQueryModel* modal = new QSqlQueryModel();
+//    QSqlQuery *query = new QSqlQuery(mydb);
+//    query->prepare("Select id, name FROM conference");
+//    query->exec();
+
+//    while (query->next()) {
+//            QString id = query->value(0).toString();
+//            QString name = query->value(1).toString();
+//            qDebug() << name << id;
+//        }
+
     return app->exec();
 }
