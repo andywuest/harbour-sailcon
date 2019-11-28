@@ -216,7 +216,12 @@ Page {
                 speaker1.labelSpeakerCompany = manager.trimToEmpty(speakers[0].company);
                 speaker1.labelSpeakerBio = manager.trimToEmpty(speakers[0].bio);
                 if (speakers[0].photoId !== undefined) {
-                  speaker1.imageSpeaker = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, speakers[0].photoId).content;
+                  var img = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, speakers[0].photoId).content
+                  if (img !== undefined)   {
+                    speaker1.imageSpeaker = img;
+                  } else {
+                      speaker1.imageSpeaker = speaker1.defaultSpeakerImage;
+                  }
                 } else {
                     speaker1.imageSpeaker = speaker1.defaultSpeakerImage;
                 }
