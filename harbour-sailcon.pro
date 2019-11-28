@@ -15,6 +15,10 @@ TARGET = harbour-sailcon
 
 CONFIG += sailfishapp
 
+QT += sql
+# \
+#     qca-qt5
+
 SOURCES += src/harbour-sailcon.cpp \
     src/dukeconbackend.cpp \
     src/sailcon.cpp
@@ -80,7 +84,8 @@ DISTFILES += \
     qml/components/Speaker.qml \
     qml/pages/Settings.qml \
     qml/components/DownloadProgressIndicator.qml \
-    qml/components/ConferenceDownloadProgressIndicator.qml
+    qml/components/ConferenceDownloadProgressIndicator.qml \
+    qml/components/ConferenceUpdater.qml
 
 
 qmldir.files = qml/pages/qmldir
