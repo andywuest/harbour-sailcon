@@ -52,23 +52,20 @@ int main(int argc, char *argv[]) {
     DukeconBackend *dukeconBackend = sailcon.getDukeconBackend();
     context->setContextProperty("dukeconBackend", dukeconBackend);
 
-
     view->setSource(SailfishApp::pathTo("qml/harbour-sailcon.qml"));
     view->show();
 
-    QQmlApplicationEngine engine;
-    engine.load(SailfishApp::pathTo("qml/harbour-sailcon.qml"));
-    qDebug() << "path : " << engine.offlineStoragePath();
+//    QQmlApplicationEngine engine;
+//    engine.load(SailfishApp::pathTo("qml/harbour-sailcon.qml"));
+//    qDebug() << "path : " << engine.offlineStoragePath();
 
-//    QSqlDatabase mydb = QSqlDatabase::addDatabase("QSQLITE");
+//    QString path(engine.offlineStoragePath() + "/Databases/"
+//                 +"fe1a06570e719120f387fac6ba8172a8"
+//                 +".sqlite");
 
-    QString path(engine.offlineStoragePath() + "/Databases/"
-                 +"fe1a06570e719120f387fac6ba8172a8"
-                 +".sqlite");
+//    qDebug() << "path : " << path;
 
-    qDebug() << "path : " << path;
-
-    dukeconBackend->databasePath = path;
+//    dukeconBackend->databasePath = path;
 
 
   //  mydb.setDatabaseName(path);
