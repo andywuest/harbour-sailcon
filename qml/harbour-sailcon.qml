@@ -51,6 +51,7 @@ import "pages"
 
 ApplicationWindow
 {
+    // TODO rename the first page
     initialPage: Component { FirstPage { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: Orientation.All
