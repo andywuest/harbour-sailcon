@@ -27,6 +27,10 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QDateTime>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQueryModel>
+#include <QCryptographicHash>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusInterface>
 
@@ -72,7 +76,7 @@ void DukeconBackend::downloadAllData(const bool singleConference, const QString 
 
     QUrl initUrl;
     if (singleConference) {
-      initUrl = QUrl(SINGLE_INIT_URL);
+        initUrl = QUrl(SINGLE_INIT_URL);
     } else {
         // TODO
     }
@@ -94,12 +98,32 @@ void DukeconBackend::handleInitDataFinished() {
         return;
     }
 
-    getEtagValue(reply);
-    emit initDataResultAvailable(processResponses(reply->readAll()));
+    const QString etag = getEtagValue(reply);
+    const QByteArray responseData = reply->readAll();
+
+    const QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
+    const QJsonObject rootObject = jsonDocument.object();
+    //dataMap.insert("id", rootObject["id"].toString());
+    QString conferenceId = rootObject["id"].toString();
+    this->currentConferenceId = conferenceId;
+
+
+    QMap<QString, QString> dataMap = getBaseConferenceData(conferenceId);
+    dataMap.insert("name", rootObject["name"].toString());
+    dataMap.insert("year", rootObject["year"].toString());
+    dataMap.insert("startDate", rootObject["startDate"].toString());
+    dataMap.insert("endDate", rootObject["endDate"].toString());
+    dataMap.insert("state", "ACTIVE");
+//    dataMap.insert("etag", etag);
+//    dataMap.insert("content", ""); // TODO
+
+    persistConferenceData(dataMap);
+
+//    emit initDataResultAvailable(processResponses(reply->readAll()));
 
     QUrl confDataUrl;
     if (this->singleConference) {
-      confDataUrl = QUrl(SINGLE_IMAGE_RESOURCES_URL);
+        confDataUrl = QUrl(SINGLE_IMAGE_RESOURCES_URL);
     } else {
         // TODO
     }
@@ -121,11 +145,11 @@ void DukeconBackend::handleImagesResourcesFinished() {
         return;
     }
 
-    emit imageResourcesResultAvailable(processResponses(reply->readAll()));
+//    emit imageResourcesResultAvailable(processResponses(reply->readAll()));
 
     QUrl confDataUrl;
     if (this->singleConference) {
-      confDataUrl = QUrl(SINGLE_CONF_DATA_URL);
+        confDataUrl = QUrl(SINGLE_CONF_DATA_URL);
     } else {
         // TODO
     }
@@ -148,9 +172,22 @@ void DukeconBackend::handleConferenceDataFinished() {
         return;
     }
 
-    getEtagValue(reply);
+    QString etag = getEtagValue(reply);
     const QByteArray responseData = reply->readAll();
-    emit conferenceDataResultAvailable(processResponses(responseData));
+
+    QMap<QString, QString> dataMap = getBaseConferenceData(this->currentConferenceId);
+//    dataMap.insert("name", rootObject["name"].toString());
+//    dataMap.insert("year", rootObject["year"].toString());
+//    dataMap.insert("startDate", rootObject["startDate"].toString());
+//    dataMap.insert("endDate", rootObject["endDate"].toString());
+//    dataMap.insert("state", "ACTIVE");
+    dataMap.insert("etag", etag);
+    dataMap.insert("content", QString(responseData));
+
+    persistConferenceData(dataMap);
+
+
+    // emit conferenceDataResultAvailable(processResponses(responseData));
 
     const QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
     const QJsonObject rootObject = jsonDocument.object();
@@ -170,13 +207,13 @@ void DukeconBackend::handleConferenceDataFinished() {
 }
 
 void DukeconBackend::fetchPhotoImages() {
-    if (photoIds.length() > 0) {
+    if (photoIds.length() > 0) { // > 0
         this->currentPhotoId = photoIds.first();
         photoIds.removeFirst();
 
         QUrl photoIdUrl;
         if (this->singleConference) {
-          photoIdUrl = QUrl(SINGLE_IMAGES_BASE_URL + this->currentPhotoId);
+            photoIdUrl = QUrl(SINGLE_IMAGES_BASE_URL + this->currentPhotoId);
         } else {
             // TODO
         }
@@ -214,7 +251,11 @@ void DukeconBackend::handlePhotoIdFinished() {
     QByteArray photoAsBase64ByteArray = imageByteArray.toBase64();
     //qDebug() << "DukeconBackend::handlePhotoIdFinished - imagebase64 : " << imageAsBase64.left(imageAsBase64.length() > 80 ? 80 : imageAsBase64.length());
 
-    emit speakerImageResultAvailable("data:image/png;base64," + processResponses(photoAsBase64ByteArray), this->currentPhotoId);
+    QMap<QString, QString> dataMap = getBaseConferenceResource(this->currentPhotoId);
+
+    persistConferenceResource(dataMap);
+
+//    emit speakerImageResultAvailable("data:image/png;base64," + processResponses(photoAsBase64ByteArray), this->currentPhotoId);
 
     fetchPhotoImages();
 }
@@ -230,6 +271,154 @@ QString DukeconBackend::getEtagValue(QNetworkReply *reply) {
     QString etag = reply->rawHeader("ETag");
     qDebug() << "ETag was " << etag;
     return etag;
+}
+
+QMap<QString, QString> DukeconBackend::getBaseConferenceResource(QString resourceId) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(databasePath);
+
+    QMap<QString, QString> dataMap;
+    dataMap.insert("resourceId", resourceId);
+
+    if(db.open()){
+        QSqlQuery query;
+        query.prepare("SELECT conferenceId, resourceId, resourceType, etag FROM conference_resources WHERE resourceId LIKE :resourceId");
+        query.bindValue(":resourceId", resourceId);
+
+        if (query.exec()) {
+            qDebug() << "siezu : " << query.size();
+        } else {
+            qDebug() << "query failed" << query.lastError();
+        }
+
+        qDebug() << "siezu : " << query.size();
+
+        if (query.next()) {
+            dataMap.insert("conferenceId", query.value("conferenceId").toString());
+            // dataMap.insert("resourceId", query.value("resourceId").toString());
+            dataMap.insert("resourceType", query.value("resourceType").toString());
+            dataMap.insert("etag", query.value("etag").toString());
+        } else {
+            qDebug() << "no data found !" << query.lastError();
+        }
+
+        db.close();
+    } else {
+        qDebug() << "failed to open database";
+    }
+
+    return dataMap;
+}
+
+QMap<QString, QString> DukeconBackend::getBaseConferenceData(QString conferenceId) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(databasePath);
+
+    QMap<QString, QString> dataMap;
+    dataMap.insert("id", conferenceId);
+
+    if(db.open()){
+        QSqlQuery query;
+//        query.prepare("SELECT id, name, year, startDate, endDate, content, etag, state FROM conference WHERE id LIKE :conferenceId");
+//        query.bindValue(":conferenceId", conferenceId);
+        query.prepare("SELECT id, name, year, startDate, endDate, content, etag, state FROM conference WHERE id LIKE :conferenceId");
+        query.bindValue(":conferenceId", conferenceId);
+        if (query.exec()) {
+            qDebug() << "siezu : " << query.size();
+        } else {
+            qDebug() << "query failed" << query.lastError();
+        }
+
+        //    dataMap.insert("name", rootObject["name"].toString());
+        //    dataMap.insert("year", rootObject["year"].toString());
+        //    dataMap.insert("startDate", rootObject["startDate"].toString());
+        //    dataMap.insert("endDate", rootObject["endDate"].toString());
+        //    dataMap.insert("state", "ACTIVE");
+
+        qDebug() << "siezu : " << query.size();
+
+        if (query.next()) {
+            dataMap.insert("id", query.value("id").toString());
+            dataMap.insert("name", query.value("name").toString());
+            dataMap.insert("year", query.value("year").toString());
+            dataMap.insert("startDate", query.value("startDate").toString());
+            dataMap.insert("endDate", query.value("endDate").toString());
+            dataMap.insert("content", query.value("content").toString());
+            dataMap.insert("etag", query.value("etag").toString());
+            dataMap.insert("state", query.value("state").toString());
+        }
+
+        db.close();
+    } else {
+        qDebug() << "failed to open database";
+    }
+
+    return dataMap;
+}
+
+void DukeconBackend::persistConferenceResource(QMap<QString, QString> dataMap) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(databasePath);
+
+    if(db.open()){
+        QSqlQuery query;
+        query.prepare(QString("INSERT OR REPLACE INTO conference_resources(conferenceId, resourceId, resourceType, etag, content) ")
+                      + QString("VALUES (:conferenceId, :resourceId, :resourceType, :etag, :content)"));
+        query.bindValue(":conferenceId", dataMap["conferenceId"]);
+        query.bindValue(":resourceId", dataMap["resourceId"]);
+        query.bindValue(":resourceType", dataMap["resourceType"]);
+        query.bindValue(":etag", dataMap["etag"]);
+        query.bindValue(":content", dataMap["content"]);
+
+        if(!query.exec()) {
+            qDebug() << "SQL Statement Error" << query.lastError();
+        }
+
+        db.commit();
+        db.close();
+    } else{
+        qDebug() << "Cant open DB";
+    }
+}
+
+void DukeconBackend::persistConferenceData(QMap<QString, QString> dataMap) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(databasePath);
+
+    if(db.open()){
+        QSqlQuery query;
+        query.prepare(QString("INSERT OR REPLACE INTO conference(id, name, year, url, homeUrl, startDate, endDate, state, content, etag) ")
+                      + QString("VALUES (:id, :name, :year, :url, :homeUrl, :startDate, :endDate, :state, :content, :etag)"));
+        query.bindValue(":id", dataMap["id"]);
+        query.bindValue(":name", dataMap["name"]);
+        query.bindValue(":year", dataMap["year"]);
+        query.bindValue(":url", dataMap["url"]);
+        query.bindValue(":startDate", dataMap["startDate"]);
+        query.bindValue(":endDate", dataMap["endDate"]);
+        query.bindValue(":state", dataMap["state"]);
+        query.bindValue(":content", dataMap["content"]);
+        query.bindValue(":etag", dataMap["etag"]);
+
+        if(!query.exec()) {
+            qDebug() << "SQL Statement Error" << query.lastError();
+        }
+
+        db.commit();
+        db.close();
+
+//        QSqlQueryModel* modal = new QSqlQueryModel();
+//        QSqlQuery *query = new QSqlQuery(db);
+//        query->prepare("Select id, name FROM conference");
+//        query->exec();
+
+//        while (query->next()) {
+//            QString id = query->value(0).toString();
+//            QString name = query->value(1).toString();
+//            qDebug() << name << id;
+//        }
+    } else{
+        qDebug() << "Cant open DB";
+    }
 }
 
 void DukeconBackend::handleRequestError(QNetworkReply::NetworkError error) {

@@ -6,6 +6,9 @@
 #include <QNetworkAccessManager>
 #include <QVariantMap>
 #include <QJsonDocument>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlTableModel>
 
 const char MIME_TYPE_JSON[] = "application/json";
 
@@ -23,13 +26,15 @@ public:
     Q_INVOKABLE void downloadAllData(const bool singleConference, const QString &conferenceId, const QString &etag);
 
     // signals for the qml part
-    Q_SIGNAL void initDataResultAvailable(const QString &reply);
-    Q_SIGNAL void imageResourcesResultAvailable(const QString &reply);
-    Q_SIGNAL void conferenceDataResultAvailable(const QString &reply);
-    Q_SIGNAL void speakerImageResultAvailable(const QString &reply, const QString &photoId);
+//    Q_SIGNAL void initDataResultAvailable(const QString &reply);
+//    Q_SIGNAL void imageResourcesResultAvailable(const QString &reply);
+//    Q_SIGNAL void conferenceDataResultAvailable(const QString &reply);
+//    Q_SIGNAL void speakerImageResultAvailable(const QString &reply, const QString &photoId);
     Q_SIGNAL void subLoadingLabelAvailable(const QString &reply);
     Q_SIGNAL void loadingDataFinished();
     Q_SIGNAL void requestError(const QString &errorMessage);
+
+    QString databasePath; // TODO setter
 
 signals:
 
@@ -40,6 +45,7 @@ private:
     bool singleConference = false;
     int speakerImageCount = -1;
     QString currentPhotoId;
+    QString currentConferenceId;
     QList<QString> photoIds;
 
     QString applicationName;
@@ -54,6 +60,10 @@ private:
 //    void searchQuoteForNameSearch(const QString &searchString);
     QString processResponses(QByteArray searchReply);
     QString getEtagValue(QNetworkReply *reply);
+    void persistConferenceData(QMap<QString, QString> dataMap);
+    void persistConferenceResource(QMap<QString, QString> dataMap);
+    QMap<QString, QString> getBaseConferenceData(QString conferenceId);
+    QMap<QString, QString> getBaseConferenceResource(QString resourceId);
     void fetchPhotoImages();
     void cleanupDownloadData();
 
