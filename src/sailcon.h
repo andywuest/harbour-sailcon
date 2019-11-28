@@ -4,6 +4,10 @@
 #include <QObject>
 #include <QNetworkAccessManager>
 #include <QSettings>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlTableModel>
+#include <QCryptographicHash>
 
 #include "dukeconbackend.h"
 
