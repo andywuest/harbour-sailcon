@@ -20,6 +20,7 @@ import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
 
 import "../components"
+import "../components/thirdparty"
 
 // QTBUG-34418
 import "."
@@ -32,6 +33,8 @@ import "../js/database.js" as Database
 
 Page {
     id: page
+    property bool loaded : false
+    property var downloadConference;
 
     // TODO pully for each conference in the list
     // -> delete
@@ -86,17 +89,6 @@ Page {
                 text: qsTr("About")
                 onClicked: pageStack.push(Qt.resolvedUrl("About.qml"))
             }
-
-            /*
-            MenuItem {
-                text: qsTr("Show Page 2")
-                onClicked: pageStack.push(Qt.resolvedUrl("SecondPage.qml"))
-            }
-            MenuItem {
-                text: qsTr("Show Page 3")
-                onClicked: pageStack.push(Qt.resolvedUrl("Third.qml"))
-            }
-            */
             MenuItem {
                 text: qsTr("Select Conference")
                 onClicked: pageStack.push(Qt.resolvedUrl(
@@ -110,26 +102,26 @@ Page {
                 text: qsTr("Settings")
                 onClicked: pageStack.push(Qt.resolvedUrl("Settings.qml"))
             }
-            MenuItem {
-                text: qsTr("Indicator")
-                onClicked: {
-                    //indicatorVisible = true;
-                    favoritesLoadingIndicator.visible = true;
-                }
-            }
+//            MenuItem {
+//                text: qsTr("Indicator")
+//                onClicked: {
+//                    //indicatorVisible = true;
+//                    favoritesLoadingIndicator.visible = true;
+//                }
+//            }
 
 
 
         }
 
-        ConferenceDownloadProgressIndicator {
-                    id: favoritesLoadingIndicator
-                    visible: false
-                    Behavior on opacity { NumberAnimation {} }
-                    opacity: !favoritesLoadingIndicator.visbile ? 1 : 0
-                    height: parent.height
-                    width: parent.width
-        }
+//        ConferenceDownloadProgressIndicator {
+//                    id: favoritesLoadingIndicator
+//                    visible: false
+//                    Behavior on opacity { NumberAnimation {} }
+//                    opacity: !favoritesLoadingIndicator.visbile ? 1 : 0
+//                    height: parent.height
+//                    width: parent.width
+//        }
 
 
 
@@ -177,6 +169,19 @@ Page {
                 id: delegate
                 menu: contextMenu
 
+                function updateConference(index) {
+                    loaded = false;
+                    conferenceUpdater.downloadConferenceData(listView.model.get(index));
+//                    var data =
+//                    downloadConference = data;
+
+//                    if (Constants.SINGLE) {
+//                        loaded = false;
+//                        dukeconBackend.downloadAllData(Constants.SINGLE, data.id, null)
+//                        return;
+//                    }
+                }
+
                 Label {
                     x: Theme.paddingLarge
                     text: "" + label // tmp workaround for no label
@@ -193,7 +198,7 @@ Page {
                     var isSingleDayConference = manager.isSingleDayConference()
                     console.log("is single day conferenc e: " + isSingleDayConference)
 
-                    if (selectedItem.state === 1) {
+                    if (selectedItem.state === Constants.CONFERENCE_ACTIVE) {
                         // TODO check - if only one day - skip that page
                         if (isSingleDayConference) {
                             var conferenceDay = manager.getDaysOfConference()[0]
@@ -247,13 +252,13 @@ Page {
                     flickable.reloadModelFromDatabase(listView.model)
                 }
 
-                function updateConference(index) {
-                    var conferenceId = listView.model.get(index).name;
-                    remorseAction("Downloading Data", function () {
-                        favoritesLoadingIndicator.confData = Database.loadConferenceFromDatabase(conferenceId);
-                        favoritesLoadingIndicator.visible = true;
-                    })
-                }
+//                function updateConference(index) {
+//                    var conferenceId = listView.model.get(index).name;
+//                    remorseAction("Downloading Data", function () {
+//                        favoritesLoadingIndicator.confData = Database.loadConferenceFromDatabase(conferenceId);
+//                        favoritesLoadingIndicator.visible = true;
+//                    })
+//                }
 
                 function activateConference(index) {
                     flickable.activateConferenceInDatabase(listView.model.get(index).name)
@@ -266,15 +271,15 @@ Page {
                     flickable.reloadModelFromDatabase(listView.model)
                 }
 
-                // z: ???
-                BusyIndicator {
-                    running: false
-                    id: busyIndicator2
-                    anchors.centerIn: parent
-                    size: BusyIndicatorSize.Medium
-                    z: 0.7
-                    //opacity: 0.8
-                }
+//                // z: ???
+//                BusyIndicator {
+//                    running: false
+//                    id: busyIndicator2
+//                    anchors.centerIn: parent
+//                    size: BusyIndicatorSize.Medium
+//                    z: 0.7
+//                    //opacity: 0.8
+//                }
             }
 
             function reloadData() {
@@ -294,11 +299,11 @@ Page {
             }
         }
 
-        Component.onCompleted: {
-            Database.initApplicationTables()
-            reloadModelFromDatabase(conferencesListModel)
-            setActiveConferenceInGlobalModel()
-        }
+//        Component.onCompleted: {
+//            Database.initApplicationTables()
+//            reloadModelFromDatabase(conferencesListModel)
+//            setActiveConferenceInGlobalModel()
+//        }
 
         function setActiveConferenceInGlobalModel() {
             try {
@@ -346,7 +351,7 @@ Page {
             } catch (err) {
                 console.log("Error activating conference in database: " + err)
             }
-            ;
+
         }
 
         function deleteConferenceFromDatabase(conferenceId) {
@@ -361,7 +366,7 @@ Page {
             } catch (err) {
                 console.log("Error deleting conference in database: " + err)
             }
-            ;
+
         }
 
         function reloadModelFromDatabase(model) {
@@ -383,9 +388,9 @@ Page {
                         var confId = row.id
                         var confName = row.name
                         var confState = row.state
-                        var stateLabel = (confState !== 0 ? qsTr("active conference") : qsTr(
+                        var stateLabel = (confState !== Constants.CONFERENCE_INACTIVE ? qsTr("active conference") : qsTr(
                                                                 "available conferences"))
-                        if (confState !== 0) {
+                        if (confState !== Constants.CONFERENCE_INACTIVE) {
                             hasSelected = true
                         }
 
@@ -411,7 +416,83 @@ Page {
             } catch (err) {
                 console.log("Error creating table in database: " + err)
             }
-            ;
         }
+
+//        function initDataResultHandler(result) {
+//            console.log("result init data : " + result.substring(1, 80));
+//        }
+
+//        function imageResourcesResultHandler(result) {
+//            console.log("result image resources : " + result.substring(1, 80));
+//            // TODO etag
+//            result = Database.persistConferenceImage(downloadConference.id, 'conferenceImage', result, "", 'logo')
+//        }
+
+//        function conferenceDataResultHandler(result) {
+//            console.log("result conf data : " + result.substring(1, 80));
+//            // TODO etag
+//            result = Database.persistConferenceData(downloadConference, result, "");
+//        }
+
+//        function speakerImageResultHandler(result, photoId) {
+//            console.log("result speaker iamge : " + result.substring(1, 80));
+//            Database.persistConferenceImage(downloadConference.id, 'speakerImage', result, "", photoId);
+//        }
+
+//        function errorResultHandler(result) {
+//            // TODO stockUpdateProblemNotification.show(result)
+//            updateAvailableConferences();
+//            loaded = true;
+//        }
+
+//        function subLoadingLabelResultHandler(subInfoLabelText) {
+//            conferenceLoadingIndicator.subInfoLabelText = subInfoLabelText;
+//        }
+
+//        function loadingDataFinishedResultHandler() {
+//            loaded = true;
+//        }
+
+        Component.onCompleted: {
+//            dukeconBackend.initDataResultAvailable.connect(initDataResultHandler);
+//            dukeconBackend.imageResourcesResultAvailable.connect(imageResourcesResultHandler);
+//            dukeconBackend.conferenceDataResultAvailable.connect(conferenceDataResultHandler);
+//            dukeconBackend.speakerImageResultAvailable.connect(speakerImageResultHandler);
+//            dukeconBackend.subLoadingLabelAvailable.connect(subLoadingLabelResultHandler)
+            //dukeconBackend.loadingDataFinished.connect(loadingDataFinishedResultHandler)
+//            dukeconBackend.requestError.connect(errorResultHandler);
+
+            Database.initApplicationTables()
+            reloadModelFromDatabase(conferencesListModel)
+            setActiveConferenceInGlobalModel()
+            loaded = true;
+        }
+
     }
+
+    ConferenceUpdater {
+        id: conferenceUpdater
+        onLoadingFinished: {
+            console.log("loadig finished !");
+            flickable.reloadModelFromDatabase(conferencesListModel)
+            flickable.setActiveConferenceInGlobalModel()
+            page.loaded = true;
+        }
+        onErrorOccured: console.log("error message : " + errorMessage);
+        onSubLoadingLabelChanged: conferenceLoadingIndicator.subInfoLabelText = label;
+    }
+
+    LoadingIndicator {
+        id: conferenceLoadingIndicator
+        subInfoLabelText: ""
+        visible: !loaded
+        Behavior on opacity {
+            NumberAnimation {
+            }
+        }
+        opacity: loaded ? 0 : 1
+        height: parent.height
+        width: parent.width
+    }
+
 }
