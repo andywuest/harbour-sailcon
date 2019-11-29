@@ -69,7 +69,7 @@ QNetworkReply *DukeconBackend::executeGetRequest(const QUrl &url, const QString 
 QNetworkReply *DukeconBackend::executeGetRequestNonJson(const QUrl &url, const QString &etag) {
     qDebug() << "DukeconBackend::executeGetRequest " << url;
     QNetworkRequest request(url);
-//    request.setHeader(QNetworkRequest::ContentTypeHeader, MIME_TYPE_JSON);
+    //    request.setHeader(QNetworkRequest::ContentTypeHeader, MIME_TYPE_JSON);
     if (!etag.isEmpty())  {
         // request.setHeader(QNetworkRequest::IfNoneMatchHeader, QString()); TODO update with later QT api
         request.setRawHeader(QByteArray("If-None-Match"), etag.toUtf8());
@@ -173,8 +173,8 @@ void DukeconBackend::handleImagesResourcesFinished() {
 
     emit subLoadingLabelAvailable(QString(tr("Conference Data")));
 
-    // TODO etag
-    reply = executeGetRequestNonJson(confDataUrl, QString());
+    const QString etagValue = lookupEtagForConferenceData(this->currentConferenceId);
+    reply = executeGetRequestNonJson(confDataUrl, etagValue);
 
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
     connect(reply, SIGNAL(finished()), this, SLOT(handleConferenceDataFinished()), Qt::UniqueConnection);
@@ -189,30 +189,39 @@ void DukeconBackend::handleConferenceDataFinished() {
         return;
     }
 
-    QString etag = getEtagValue(reply);
-    const QByteArray responseData = reply->readAll();
+    const int httpReturnCode = getHttpReturnCode(reply);
 
-    QMap<QString, QString> dataMap = getBaseConferenceData(this->currentConferenceId);
-    dataMap.insert("etag", etag);
-    dataMap.insert("content", QString(responseData));
+    // if the conference data has not changed - there is no need to fetch the speaker images again!
+    if (httpReturnCode == 304) {
+        qDebug() << " => http return code for " << this->currentConferenceId << " was " << httpReturnCode << " nothing changed !";
+        cleanupDownloadData();
+        emit loadingDataFinished();
+    } else {
+        QString etag = getEtagValue(reply);
+        const QByteArray responseData = reply->readAll();
 
-    persistConferenceData(dataMap);
+        QMap<QString, QString> dataMap = getBaseConferenceData(this->currentConferenceId);
+        dataMap.insert("etag", etag);
+        dataMap.insert("content", QString(responseData));
 
-    const QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
-    const QJsonObject rootObject = jsonDocument.object();
-    const QJsonArray speakersArray = rootObject["speakers"].toArray();
+        persistConferenceData(dataMap);
 
-    foreach (const QJsonValue &speaker, speakersArray) {
-        const QJsonObject speakerObject = speaker.toObject();
-        const QString photoId = speakerObject["photoId"].toString();
-        if (!photoId.isEmpty()) {
-            this->photoIds.append(photoId);
+        const QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
+        const QJsonObject rootObject = jsonDocument.object();
+        const QJsonArray speakersArray = rootObject["speakers"].toArray();
+
+        foreach (const QJsonValue &speaker, speakersArray) {
+            const QJsonObject speakerObject = speaker.toObject();
+            const QString photoId = speakerObject["photoId"].toString();
+            if (!photoId.isEmpty()) {
+                this->photoIds.append(photoId);
+            }
         }
+
+        this->speakerImageCount = photoIds.length();
+
+        fetchPhotoImages();
     }
-
-    this->speakerImageCount = photoIds.length();
-
-    fetchPhotoImages();
 }
 
 void DukeconBackend::fetchPhotoImages() {
@@ -259,7 +268,7 @@ void DukeconBackend::handlePhotoIdFinished() {
     const int httpReturnCode = getHttpReturnCode(reply);
 
     if (httpReturnCode == 304) {
-       qDebug() << " => http return code for " << this->currentPhotoId << " was " << httpReturnCode << " nothing changed !";
+        qDebug() << " => http return code for " << this->currentPhotoId << " was " << httpReturnCode << " nothing changed !";
     } else {
         QString etag = getEtagValue(reply);
 
