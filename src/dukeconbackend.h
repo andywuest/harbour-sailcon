@@ -53,19 +53,23 @@ private:
     QString applicationVersion;
     QNetworkAccessManager *manager;
 
-    QNetworkReply *executeGetRequest(const QUrl &url);
-    QNetworkReply *executeGetRequestNonJson(const QUrl &url);
+    QNetworkReply *executeGetRequest(const QUrl &url, const QString &etag);
+    QNetworkReply *executeGetRequestNonJson(const QUrl &url, const QString &etag);
 
 
     // is triggered after name search because the first json request does not contain all information we need
 //    void searchQuoteForNameSearch(const QString &searchString);
     void initializeDatabase();
     QString processResponses(QByteArray searchReply);
+    int getHttpReturnCode(QNetworkReply *reply);
     QString getEtagValue(QNetworkReply *reply);
     void persistConferenceData(QMap<QString, QString> dataMap);
     void persistConferenceResource(QMap<QString, QString> dataMap);
     QMap<QString, QString> getBaseConferenceData(QString conferenceId);
     QMap<QString, QString> getBaseConferenceResource(QString conferenceId, QString resourceId);
+    QString lookupEtagForConferenceData(QString conferenceId);
+    QString lookupEtagForConferenceResource(QString conferenceId, QString resourceId);
+
     void fetchPhotoImages();
     void cleanupDownloadData();
 
