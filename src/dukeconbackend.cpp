@@ -109,19 +109,11 @@ void DukeconBackend::handleInitDataFinished() {
         return;
     }
 
-    const int httpReturnCode = getHttpReturnCode(reply);
-    qDebug() << "return code was : " << httpReturnCode;
-
-
-    const QString etag = getEtagValue(reply);
     const QByteArray responseData = reply->readAll();
-
     const QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
     const QJsonObject rootObject = jsonDocument.object();
-    //dataMap.insert("id", rootObject["id"].toString());
     QString conferenceId = rootObject["id"].toString();
     this->currentConferenceId = conferenceId;
-
 
     QMap<QString, QString> dataMap = getBaseConferenceData(conferenceId);
     dataMap.insert("name", rootObject["name"].toString());
@@ -129,8 +121,6 @@ void DukeconBackend::handleInitDataFinished() {
     dataMap.insert("startDate", rootObject["startDate"].toString());
     dataMap.insert("endDate", rootObject["endDate"].toString());
     dataMap.insert("state", "ACTIVE");
-    //    dataMap.insert("etag", etag);
-    //    dataMap.insert("content", ""); // TODO
 
     persistConferenceData(dataMap);
 
@@ -143,8 +133,8 @@ void DukeconBackend::handleInitDataFinished() {
 
     emit subLoadingLabelAvailable(QString(tr("Image Resources")));
 
-    // TODO etag
-    reply = executeGetRequest(confDataUrl, QString());
+    const QString etag = lookupEtagForConferenceResource(conferenceId, "conferenceImage");
+    reply = executeGetRequest(confDataUrl, etag);
 
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
     connect(reply, SIGNAL(finished()), this, SLOT(handleImagesResourcesFinished()), Qt::UniqueConnection);
@@ -158,11 +148,17 @@ void DukeconBackend::handleImagesResourcesFinished() {
         return;
     }
 
-    QString etag = getEtagValue(reply);
-    QMap<QString, QString> dataMap = getBaseConferenceResource(this->currentConferenceId, "conferenceImage");
-    dataMap.insert("etag", etag);
-    dataMap.insert("content", QString(reply->readAll()));
-    persistConferenceResource(dataMap);
+    const int httpReturnCode = getHttpReturnCode(reply);
+
+    // if the conference data has not changed - there is no need to fetch the speaker images again!
+    if (httpReturnCode == 304) {
+        qDebug() << " => http return code for images resources of " << this->currentConferenceId << " was " << httpReturnCode << " nothing changed !";
+    } else {
+        QMap<QString, QString> dataMap = getBaseConferenceResource(this->currentConferenceId, "conferenceImage");
+        dataMap.insert("etag", getEtagValue(reply));
+        dataMap.insert("content", QString(reply->readAll()));
+        persistConferenceResource(dataMap);
+    }
 
     QUrl confDataUrl;
     if (this->singleConference) {
@@ -197,11 +193,10 @@ void DukeconBackend::handleConferenceDataFinished() {
         cleanupDownloadData();
         emit loadingDataFinished();
     } else {
-        QString etag = getEtagValue(reply);
         const QByteArray responseData = reply->readAll();
 
         QMap<QString, QString> dataMap = getBaseConferenceData(this->currentConferenceId);
-        dataMap.insert("etag", etag);
+        dataMap.insert("etag", getEtagValue(reply));
         dataMap.insert("content", QString(responseData));
 
         persistConferenceData(dataMap);
@@ -225,7 +220,7 @@ void DukeconBackend::handleConferenceDataFinished() {
 }
 
 void DukeconBackend::fetchPhotoImages() {
-    if (photoIds.length() > 0) { // > 0
+    if (photoIds.length() > 0) {
         this->currentPhotoId = photoIds.first();
         photoIds.removeFirst();
 
@@ -240,7 +235,6 @@ void DukeconBackend::fetchPhotoImages() {
                                       .arg(speakerImageCount - photoIds.length())
                                       .arg(this->speakerImageCount));
 
-        // TODO etag
         QString etagValue = lookupEtagForConferenceResource(this->currentConferenceId, this->currentPhotoId);
         QNetworkReply *reply = executeGetRequest(photoIdUrl, etagValue);
         connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
@@ -270,15 +264,11 @@ void DukeconBackend::handlePhotoIdFinished() {
     if (httpReturnCode == 304) {
         qDebug() << " => http return code for " << this->currentPhotoId << " was " << httpReturnCode << " nothing changed !";
     } else {
-        QString etag = getEtagValue(reply);
-
-        QByteArray imageByteArray(reply->readAll());
-        //QString imageAsBase64 = QString();
-        QByteArray photoAsBase64ByteArray = imageByteArray.toBase64();
-        //qDebug() << "DukeconBackend::handlePhotoIdFinished - imagebase64 : " << imageAsBase64.left(imageAsBase64.length() > 80 ? 80 : imageAsBase64.length());
+        const QByteArray imageByteArray(reply->readAll());
+        const QByteArray photoAsBase64ByteArray = imageByteArray.toBase64();
 
         QMap<QString, QString> dataMap = getBaseConferenceResource(this->currentConferenceId, this->currentPhotoId);
-        dataMap.insert("etag", etag);
+        dataMap.insert("etag", getEtagValue(reply));
         dataMap.insert("content", QString("data:image/png;base64," + photoAsBase64ByteArray));
 
         persistConferenceResource(dataMap);
