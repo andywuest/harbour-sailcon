@@ -211,6 +211,9 @@ Page {
 
             // TODO company can be undefined
 
+            var supportedSocialTypes = ["facebook", "instagram", "linkedin", "pinterest", "twitter", "xing", "youtube"];
+            var supportedDocumentTypes = ["slides", "manuscript", "other"];
+
             if (speakers[0] !== undefined) {
                 speaker1.labelSpeakerName = speakers[0].name;
                 speaker1.labelSpeakerCompany = manager.trimToEmpty(speakers[0].company);
@@ -226,16 +229,35 @@ Page {
                     speaker1.imageSpeaker = speaker1.defaultSpeakerImage;
                 }
 
-                speaker1.sectionHeaderWebLinks = speakers[0].isWebLinkPresent();
-                speaker1.labelWebsite = manager.trimToEmpty(speakers[0].website);
-                speaker1.labelTwitter = manager.trimToEmpty(speakers[0].twitter);
-                speaker1.labelLinkedin = manager.trimToEmpty(speakers[0].linkedin);
-                speaker1.labelXing = manager.trimToEmpty(speakers[0].xing);
+                // TODO isWebLinkPresent() methode im speaker kann entferntn werden !!!
 
-                speaker1.sectionHeaderDocuments = event.isDocumentsPresent();
-                speaker1.labelSlides = manager.trimToEmpty(event.documents.slides);
-                speaker1.labelManuscript = manager.trimToEmpty(event.documents.manuscript);
-                speaker1.labelOther = manager.trimToEmpty(event.documents.other);
+//                speaker1.sectionHeaderWebLinks = speakers[0].isWebLinkPresent();
+//                speaker1.labelWebsite = manager.trimToEmpty(speakers[0].website);
+//                speaker1.labelTwitter = manager.trimToEmpty(speakers[0].twitter);
+//                speaker1.labelLinkedin = manager.trimToEmpty(speakers[0].linkedin);
+//                speaker1.labelXing = manager.trimToEmpty(speakers[0].xing);
+
+                supportedSocialTypes.forEach(function(element) {
+                    speaker1.addSocialLink(element, speakers[0][element])
+                });
+
+                supportedDocumentTypes.forEach(function(element) {
+                    speaker1.addDocumentLink(element, event.documents[element])
+                });
+
+
+
+
+                // speaker1.addSocialLink(speakers[0].website);
+//                speaker1.addSocialLink(speakers[0].twitter);
+//                speaker1.addSocialLink(speakers[0].linkedin);
+//                speaker1.addSocialLink(speakers[0].xing);
+//                speaker1.addSocialLink(speakers[0].twitter);
+
+//                speaker1.sectionHeaderDocuments = event.isDocumentsPresent();
+//                speaker1.labelSlides = manager.trimToEmpty(event.documents.slides);
+//                speaker1.labelManuscript = manager.trimToEmpty(event.documents.manuscript);
+//                speaker1.labelOther = manager.trimToEmpty(event.documents.other);
 
                 speaker1.visible = true;
             }
@@ -250,19 +272,30 @@ Page {
                     speaker2.imageSpeaker = speaker2.defaultSpeakerImage;
                 }
 
-                speaker2.sectionHeaderWebLinks = speakers[1].isWebLinkPresent();
-                speaker2.labelWebsite = manager.trimToEmpty(speakers[1].website);
-                speaker2.labelTwitter = manager.trimToEmpty(speakers[1].twitter);
-                speaker2.labelLinkedin = manager.trimToEmpty(speakers[1].linkedin);
-                speaker2.labelXing = manager.trimToEmpty(speakers[1].xing);
+                supportedSocialTypes.forEach(function(element) {
+                    speaker2.addSocialLink(element, speakers[1][element])
+                });
 
-                speaker2.sectionHeaderDocuments = event.isDocumentsPresent();
-                speaker2.labelSlides = manager.trimToEmpty(event.documents.slides);
-                speaker2.labelManuscript = manager.trimToEmpty(event.documents.manuscript);
-                speaker2.labelOther = manager.trimToEmpty(event.documents.other);
+                supportedDocumentTypes.forEach(function(element) {
+                    speaker2.addDocumentLink(element, event.documents[element])
+                });
+
+//                speaker2.sectionHeaderWebLinks = speakers[1].isWebLinkPresent();
+//                speaker2.labelWebsite = manager.trimToEmpty(speakers[1].website);
+//                speaker2.labelTwitter = manager.trimToEmpty(speakers[1].twitter);
+//                speaker2.labelLinkedin = manager.trimToEmpty(speakers[1].linkedin);
+//                speaker2.labelXing = manager.trimToEmpty(speakers[1].xing);
+
+//                speaker2.sectionHeaderDocuments = event.isDocumentsPresent();
+//                speaker2.labelSlides = manager.trimToEmpty(event.documents.slides);
+//                speaker2.labelManuscript = manager.trimToEmpty(event.documents.manuscript);
+//                speaker2.labelOther = manager.trimToEmpty(event.documents.other);
 
                 speaker2.visible = true;
             }
+
+
+
 
 //            var speakerText = ""
 //            for (var i = 0; i < speakers.length; i++) {
