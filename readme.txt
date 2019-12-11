@@ -1,3 +1,8 @@
+> ssh -p 2222 -i ~/SailfishOS/vmshare/ssh/private_keys/engine/mersdk mersdk@localhost
+> cd /home/src1/projects/sailfishos/github/harbour-sailcon
+> mb2 -t SailfishOS-2.2.0.29-armv7hl build
+
+
 # generate or remove license header -via maven plugin
 mvn license:format
 mvn license:remove
