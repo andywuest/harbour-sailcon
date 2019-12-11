@@ -12,11 +12,11 @@
 
 const char MIME_TYPE_JSON[] = "application/json";
 
-// single conf is currencly javaland2019
-const char SINGLE_INIT_URL[] = "https://programm.javaland.eu/2019/rest/init.json";
-const char SINGLE_IMAGE_RESOURCES_URL[] = "https://programm.javaland.eu/2019/rest/image-resources.json";
-const char SINGLE_CONF_DATA_URL[] = "https://programm.javaland.eu/2019/rest/conferences/javaland2019";
-const char SINGLE_IMAGES_BASE_URL[] ="https://programm.javaland.eu/2019/rest/speaker/images/";
+// single conf is currencly javaland2020
+const char SINGLE_INIT_URL[] = "https://programm.javaland.eu/2020/rest/init.json";
+const char SINGLE_IMAGE_RESOURCES_URL[] = "https://programm.javaland.eu/2020/rest/image-resources.json";
+const char SINGLE_CONF_DATA_URL[] = "https://programm.javaland.eu/2020/rest/conferences/javaland2020";
+const char SINGLE_IMAGES_BASE_URL[] ="https://programm.javaland.eu/2020/rest/speaker/images/";
 
 class DukeconBackend : public QObject {
     Q_OBJECT
@@ -26,15 +26,9 @@ public:
     Q_INVOKABLE void downloadAllData(const bool singleConference, const QString &conferenceId);
 
     // signals for the qml part
-//    Q_SIGNAL void initDataResultAvailable(const QString &reply);
-//    Q_SIGNAL void imageResourcesResultAvailable(const QString &reply);
-//    Q_SIGNAL void conferenceDataResultAvailable(const QString &reply);
-//    Q_SIGNAL void speakerImageResultAvailable(const QString &reply, const QString &photoId);
     Q_SIGNAL void subLoadingLabelAvailable(const QString &reply);
     Q_SIGNAL void loadingDataFinished();
     Q_SIGNAL void requestError(const QString &errorMessage);
-
-    //QString databasePath; // TODO setter
 
 signals:
 
@@ -56,9 +50,6 @@ private:
     QNetworkReply *executeGetRequest(const QUrl &url, const QString &etag);
     QNetworkReply *executeGetRequestNonJson(const QUrl &url, const QString &etag);
 
-
-    // is triggered after name search because the first json request does not contain all information we need
-//    void searchQuoteForNameSearch(const QString &searchString);
     void initializeDatabase();
     QString processResponses(QByteArray searchReply);
     int getHttpReturnCode(QNetworkReply *reply);
@@ -80,8 +71,6 @@ private slots:
     void handleConferenceDataFinished();
     void handlePhotoIdFinished();
 
-//    void handleSearchQuoteForNameFinished();
-//    void handleSearchQuoteFinished();
 };
 
 #endif // DUKECONBACKEND_H
