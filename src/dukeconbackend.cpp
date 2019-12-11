@@ -37,11 +37,6 @@
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusInterface>
 
-
-//const char SINGLE_INIT_URL = "https://programm.javaland.eu/2019/rest/init.json";
-//const char SINGLE_CONF_DATA_URL = "https://programm.javaland.eu/2019/rest/image-resources.json";
-//const char SINGLE_IMAGES_BASE_URL ="https://programm.javaland.eu/2019/rest/speaker/images/";
-
 DukeconBackend::DukeconBackend(QNetworkAccessManager *manager, const QString &applicationName, const QString applicationVersion, QObject *parent) : QObject(parent) {
     qDebug() << "Initializing Dukecon Backend...";
     this->manager = manager;
@@ -302,7 +297,7 @@ void DukeconBackend::initializeDatabase() {
 
         // https://lists.qt-project.org/pipermail/interest/2016-March/021316.html
         QString path(engine.offlineStoragePath() + "/Databases/"
-                     +QCryptographicHash::hash("DukeConApp", QCryptographicHash::Md5).toHex()
+                     +QCryptographicHash::hash("harbour-sailcon", QCryptographicHash::Md5).toHex()
                      +".sqlite");
 
         qDebug() << "path : " << path;
