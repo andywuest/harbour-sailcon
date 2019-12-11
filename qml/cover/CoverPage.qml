@@ -23,9 +23,9 @@ import QtQuick.LocalStorage 2.0
 // QTBUG-34418
 import "../pages/."
 
-import "../pages/constants.js" as Constants
-import "../pages/utils2.js" as Utils2
-import "../pages/database.js" as Database
+import "../js/constants.js" as Constants
+import "../js/utils2.js" as Utils2
+import "../js/database.js" as Database
 
 CoverBackground {
 
