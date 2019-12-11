@@ -33,12 +33,11 @@
 #endif
 
 #include <sailfishapp.h>
-#include <QCoreApplication>
-#include <QTextStream>
-#include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQueryModel>
-#include <QCryptographicHash>
+#include <QScopedPointer>
+#include <QQuickView>
+#include <QtQml>
+#include <QQmlContext>
+#include <QGuiApplication>
 
 #include "sailcon.h"
 
