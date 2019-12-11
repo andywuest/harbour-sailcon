@@ -22,15 +22,9 @@ SOURCES += src/harbour-sailcon.cpp \
     src/dukeconbackend.cpp \
     src/sailcon.cpp
 
-OTHER_FILES += qml/harbour-sailcon.qml \
-    qml/cover/CoverPage.qml \
-    qml/pages/FirstPage.qml \
-    qml/pages/SecondPage.qml \
-    qml/pages/qmldir \
-    rpm/harbour-sailcon.changes.in \
+OTHER_FILES += rpm/harbour-sailcon.changes.in \
     rpm/harbour-sailcon.spec \
     rpm/harbour-sailcon.yaml \
-    images/jfs.png \
     translations/*.ts \
     harbour-sailcon.desktop
 
@@ -50,6 +44,11 @@ TRANSLATIONS += \
     translations/harbour-sailcon-de.ts
 
 DISTFILES += \
+    qml/cover/CoverPage.qml \
+    qml/pages/AboutPage.qml \
+    qml/pages/ConferenceOverviewPage.qml \
+    qml/pages/ConferenceSelectionPage.qml \
+    qml/pages/TalkPage.qml \
     js/pages/logic.js \
     js/pages/constants.js \
     js/pages/database.js \
@@ -57,7 +56,6 @@ DISTFILES += \
     js/pages/jfs2016.js \
     js/pages/utils2.js \
     qml/pages/Third.qml \
-    qml/pages/Talk.qml \
     qml/pages/TalkSettings.qml \
     qml/pages/ExploreByDay.qml \
     qml/pages/ExploreByDayAndTime.qml \
