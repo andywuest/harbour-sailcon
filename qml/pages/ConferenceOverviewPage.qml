@@ -30,7 +30,6 @@ import "../js/utils2.js" as Utils2
 import "../js/constants.js" as Constants
 import "../js/database.js" as Database
 
-
 Page {
     id: page
     property bool loaded : false
@@ -76,32 +75,32 @@ Page {
 
         // PullDownMenu and PushUpMenu must be declared in SilicaFlickable, SilicaListView or SilicaGridView
         PullDownMenu {
-            MenuItem {
-                text: qsTr("Reset")
-                onClicked: {
-                    Database.resetApplication();
-                    Database.initApplicationTables();
-                    // reload the model to make sure we have the latest state
-                    flickable.reloadModelFromDatabase(listView.model);
-                }
-            }
+//            MenuItem {
+//                text: qsTr("Reset")
+//                onClicked: {
+//                    Database.resetApplication();
+//                    Database.initApplicationTables();
+//                    // reload the model to make sure we have the latest state
+//                    flickable.reloadModelFromDatabase(listView.model);
+//                }
+//            }
             MenuItem {
                 text: qsTr("About")
-                onClicked: pageStack.push(Qt.resolvedUrl("About.qml"))
-            }
-            MenuItem {
-                text: qsTr("Select Conference")
-                onClicked: pageStack.push(Qt.resolvedUrl(
-                                              "SelectConference.qml"))
-            }
-            MenuItem {
-                text: qsTr("DukeCon App")
-                onClicked: pageStack.push(Qt.resolvedUrl("ExploreByDay.qml"))
+                onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
             }
             MenuItem {
                 text: qsTr("Settings")
                 onClicked: pageStack.push(Qt.resolvedUrl("Settings.qml"))
             }
+            MenuItem {
+                text: qsTr("Select Conference")
+                onClicked: pageStack.push(Qt.resolvedUrl(
+                                              "ConferenceSelectionPage.qml"))
+            }
+//            MenuItem {
+//                text: qsTr("DukeCon App")
+//                onClicked: pageStack.push(Qt.resolvedUrl("ExploreByDay.qml"))
+//            }
 //            MenuItem {
 //                text: qsTr("Indicator")
 //                onClicked: {

@@ -29,7 +29,6 @@ import "../js/constants.js" as Constants
 import "../js/utils2.js" as Utils2
 import "../js/database.js" as Database
 
-
 // http://imaginativethinking.ca/make-qml-component-singleton/
 Page {
     id: selectConference
@@ -145,9 +144,9 @@ Page {
             var persistedConferenceIds = Database.getPersistedConferenceIds();
             if (Constants.SINGLE) {
                 var conf = {};
-                conf.id = "javaland2019"
-                conf.name = "JavaLand 2019"
-                conf.year = "2019"
+                conf.id = "javaland2020"
+                conf.name = "JavaLand 2020"
+                conf.year = "2020"
                 conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
                 conferencesListModel.append(conf)
             } else {
