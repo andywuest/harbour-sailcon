@@ -86,11 +86,8 @@ void DukeconBackend::downloadAllData(const bool singleConference, const QString 
 
     emit subLoadingLabelAvailable(QString(tr("Init Data")));
 
-    // TODO etag
-
-    QString etag = lookupEtagForConferenceData(conferenceId);
-
-    QNetworkReply *reply = executeGetRequest(initUrl, QString());
+    const QString etag = lookupEtagForConferenceData(conferenceId);
+    QNetworkReply *reply = executeGetRequest(initUrl, etag);
 
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleRequestError(QNetworkReply::NetworkError)), Qt::UniqueConnection);
     connect(reply, SIGNAL(finished()), this, SLOT(handleInitDataFinished()), Qt::UniqueConnection);
@@ -266,6 +263,7 @@ void DukeconBackend::handlePhotoIdFinished() {
         dataMap.insert("etag", getEtagValue(reply));
         dataMap.insert("content", QString("data:image/png;base64," + photoAsBase64ByteArray));
 
+        // TODO do not persist the images in the database but in the filessystem - only persist the references / etag to the image
         persistConferenceResource(dataMap);
     }
 
@@ -325,17 +323,11 @@ QMap<QString, QString> DukeconBackend::getBaseConferenceResource(QString confere
         query.bindValue(":conferenceId", conferenceId);
         query.bindValue(":resourceId", resourceId);
 
-        if (query.exec()) {
-            qDebug() << "siezu : " << query.size();
-        } else {
+        if (!query.exec()) {
             qDebug() << "query failed" << query.lastError();
         }
 
-        qDebug() << "siezu : " << query.size();
-
         if (query.next()) {
-            //            dataMap.insert("conferenceId", query.value("conferenceId").toString());
-            // dataMap.insert("resourceId", query.value("resourceId").toString());
             dataMap.insert("resourceType", query.value("resourceType").toString());
             dataMap.insert("etag", query.value("etag").toString());
         } else {
@@ -364,23 +356,11 @@ QMap<QString, QString> DukeconBackend::getBaseConferenceData(QString conferenceI
 
     if(db.open()){
         QSqlQuery query;
-        //        query.prepare("SELECT id, name, year, startDate, endDate, content, etag, state FROM conference WHERE id LIKE :conferenceId");
-        //        query.bindValue(":conferenceId", conferenceId);
         query.prepare("SELECT id, name, year, startDate, endDate, content, etag, state FROM conference WHERE id LIKE :conferenceId");
         query.bindValue(":conferenceId", conferenceId);
-        if (query.exec()) {
-            qDebug() << "siezu : " << query.size();
-        } else {
-            qDebug() << "query failed" << query.lastError();
+        if (!query.exec()) {
+            qDebug() << "query failed - error was " << query.lastError();
         }
-
-        //    dataMap.insert("name", rootObject["name"].toString());
-        //    dataMap.insert("year", rootObject["year"].toString());
-        //    dataMap.insert("startDate", rootObject["startDate"].toString());
-        //    dataMap.insert("endDate", rootObject["endDate"].toString());
-        //    dataMap.insert("state", "ACTIVE");
-
-        qDebug() << "siezu : " << query.size();
 
         if (query.next()) {
             dataMap.insert("id", query.value("id").toString());
