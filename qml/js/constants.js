@@ -11,7 +11,7 @@ var RETURN_CODE_OK = 0;
 var RETURN_CODE_NOT_MODIFIED = 1;
 var RETURN_CODE_ERROR = 2;
 
-var VERSION = "0.1"
+var VERSION = "0.1.0"
 
 var CONFERENCE_LOGO = 'conferenceImage';
 
