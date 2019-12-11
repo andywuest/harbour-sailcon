@@ -42,7 +42,7 @@ Page {
 
             Label {
                 x: Theme.paddingLarge
-                text: "" + date
+                text: Date.fromLocaleString(Qt.locale("de_DE"), date, "yyyy-MM-dd").toLocaleString(Qt.locale("de_DE"), qsTr("dd.MM.yyyy"))
                 anchors.verticalCenter: parent.verticalCenter
                 color: delegate.highlighted ? Theme.highlightColor : Theme.primaryColor
             }
