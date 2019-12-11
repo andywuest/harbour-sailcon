@@ -4,8 +4,8 @@ Qt.include("constants.js")
 
 function getOpenDatabase() {
     var db = LocalStorage.openDatabaseSync(
-                "DukeConApp", "1.0",
-                "Database for the DukeConApp Conference data!", 10000000)
+                "harbour-sailcon", "1.0",
+                "Database for the harbour-sailcon application!", 10000000)
     return db
 }
 
