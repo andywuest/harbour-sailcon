@@ -153,7 +153,7 @@ Page {
                 console.log("iteM id : " + selectedItem.id)
                 console.log("iteM title : " + selectedItem.title)
                 console.log("iteM abstract : " + selectedItem.abstractText)
-                pageStack.push(Qt.resolvedUrl("Talk.qml"), {
+                pageStack.push(Qt.resolvedUrl("TalkPage.qml"), {
                                    eventId: id
                                });
             }
