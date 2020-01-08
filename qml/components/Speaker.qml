@@ -2,6 +2,8 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 
+import "thirdparty"
+
 Column {
     id: columnSpeaker
 
@@ -10,6 +12,7 @@ Column {
            console.log("social link added " + socialUrl);
 //           socialLinkModel.append({type: socialType, url: socialUrl});
             socialLinkModel.append({type: socialType, url: socialUrl});
+            socialLinkListModel.append({type: socialType, url: socialUrl, image: "../../../images/social_" + socialType + ".svg"});
         }
     }
 
@@ -20,6 +23,7 @@ Column {
             documentLinkModel.append({type: documentType, url: documentUrl});
 //            documentLinkModel.append({type: documentType, url: documentUrl});
 //            documentLinkModel.append({type: documentType, url: documentUrl});
+            documentLinkListModel.append({type: documentType, url: documentUrl, image: "../../../images/social_twitter.svg"}); // TODO fix link
         }
     }
 
@@ -57,6 +61,13 @@ Column {
         id: documentLinkModel
     }
 
+    ListModel {
+        id: socialLinkListModel
+    }
+
+    ListModel {
+        id: documentLinkListModel
+    }
 
   //   bottom: Theme.paddingLarge
 
@@ -123,6 +134,37 @@ Column {
         font.pixelSize: Theme.fontSizeExtraSmall
     }
 
+    Repeater {
+            id: socialLinkList
+            anchors.fill: parent
+
+            //VerticalScrollDecorator { flickable: socialLinkList }
+
+
+//            section.property: 'section'
+//            section.delegate: SectionHeader {
+//                text: section
+//                horizontalAlignment: Text.AlignHCenter
+//            }
+
+            model: socialLinkListModel
+
+            delegate: LinkItem {
+                onClicked: {
+                    console.log("url : " + socialLinkListModel.get(index).url);
+                    Qt.openUrlExternally(socialLinkListModel.get(index).url);
+                }
+                    //pgst.loadPage('EpisodesPage.qml', {'podcast_id': id, 'title': title});
+            }
+
+//            ViewPlaceholder {
+//                enabled: socialLinkListModel.count == 0 && py.ready
+//                text: qsTr("No subscriptions")
+//            }
+        }
+
+
+
     SilicaGridView {
         id: socialGrid
 
@@ -171,15 +213,43 @@ Column {
         }
     }
 
-
-
-
     SectionHeader {
         id: sectionHeaderDocuments
         visible: documentGrid.model.count > 0
         text: qsTr("Documents")
         font.pixelSize: Theme.fontSizeExtraSmall
     }
+
+    Repeater {
+            id: documentLinkList
+            anchors.fill: parent
+
+            //VerticalScrollDecorator { flickable: socialLinkList }
+
+
+//            section.property: 'section'
+//            section.delegate: SectionHeader {
+//                text: section
+//                horizontalAlignment: Text.AlignHCenter
+//            }
+
+            model: documentLinkListModel
+
+            delegate: LinkItem {
+                onClicked: {
+                    console.log("url : " + documentLinkListModel.get(index).url);
+                    Qt.openUrlExternally(documentLinkListModel.get(index).url);
+                }
+                    //pgst.loadPage('EpisodesPage.qml', {'podcast_id': id, 'title': title});
+            }
+
+//            ViewPlaceholder {
+//                enabled: socialLinkListModel.count == 0 && py.ready
+//                text: qsTr("No subscriptions")
+//            }
+        }
+
+
 
     SilicaGridView {
         id: documentGrid
