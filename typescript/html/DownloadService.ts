@@ -18,7 +18,7 @@ class DownloadService {
         httpRequest.timeout = data.timeout;
         httpRequest.onreadystatechange = () => {
             if (httpRequest.readyState === XMLHttpRequest.DONE) {
-                if (httpRequest.status && httpRequest.status == 200 && httpRequest.responseText != "undefined") {
+                if (httpRequest.status && httpRequest.status === 200 && httpRequest.responseText !== "undefined") {
                     console.log("return status : " + httpRequest.status);
                     console.log("Resposne Headers : " + httpRequest.getAllResponseHeaders())
                     console.log("Resposne ETag : " + httpRequest.getResponseHeader("ETag"))
