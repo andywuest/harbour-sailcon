@@ -91,6 +91,7 @@ Page {
             Component {
                 id: contextMenu
                 ContextMenu {
+                    visible: !isPersisted
                     MenuItem {
                         visible: !isPersisted
                         text: qsTr("Add")
@@ -144,11 +145,19 @@ Page {
             var persistedConferenceIds = Database.getPersistedConferenceIds();
             if (Constants.SINGLE) {
                 var conf = {};
+                conf.id = "javaland2019"
+                conf.name = "JavaLand 2019"
+                conf.year = "2019"
+                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                conferencesListModel.append(conf)
+
+                conf = {};
                 conf.id = "javaland2020"
                 conf.name = "JavaLand 2020"
                 conf.year = "2020"
                 conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
                 conferencesListModel.append(conf)
+
             } else {
                 var conferenceListManager = Utils2.createConferenceListManager()
                 conferenceListManager.fetchConferences(
