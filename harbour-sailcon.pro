@@ -82,7 +82,8 @@ DISTFILES += \
     qml/pages/Settings.qml \
     qml/components/DownloadProgressIndicator.qml \
     qml/components/ConferenceDownloadProgressIndicator.qml \
-    qml/components/ConferenceUpdater.qml
+    qml/components/ConferenceUpdater.qml \
+    qml/components/thirdparty/LinkItem.qml
 
 
 qmldir.files = qml/pages/qmldir
