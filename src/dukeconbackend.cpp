@@ -72,17 +72,30 @@ QNetworkReply *DukeconBackend::executeGetRequestNonJson(const QUrl &url, const Q
     return manager->get(request);
 }
 
-void DukeconBackend::downloadAllData(const bool singleConference, const QString &conferenceId) {
-    qDebug() << "DukeconBackend::downloadConferenceData";
-
-    this->singleConference = singleConference;
-
-    QUrl initUrl;
+QString DukeconBackend::resolveConferenceUrl(const bool singleConference, const QString &conferenceId, const QString &year, const QString &urlType) {
     if (singleConference) {
-        initUrl = QUrl(SINGLE_INIT_URL);
+        QString conferenceKey = "";
+        if (conferenceId.startsWith("javaland")) {
+            conferenceKey = "javaland";
+        }
+
+        QString url = CONFERENCES_MAP[conferenceKey][urlType].arg(year);
+        qDebug() << "url is now " << url;
+
+        return url;
     } else {
         // TODO
     }
+    return QString("");
+}
+
+void DukeconBackend::downloadAllData(const bool singleConference, const QString &conferenceId, const QString &year) {
+    qDebug() << "DukeconBackend::downloadAllData " << conferenceId << " " << year;
+
+    this->singleConference = singleConference;
+    this->currentConferenceYear = year;
+
+    QUrl initUrl = QUrl(resolveConferenceUrl(singleConference, conferenceId, year, QString("SINGLE_INIT_URL")));
 
     emit subLoadingLabelAvailable(QString(tr("Init Data")));
 
@@ -116,12 +129,14 @@ void DukeconBackend::handleInitDataFinished() {
 
     persistConferenceData(dataMap);
 
-    QUrl confDataUrl;
-    if (this->singleConference) {
-        confDataUrl = QUrl(SINGLE_IMAGE_RESOURCES_URL);
-    } else {
-        // TODO
-    }
+    QUrl confDataUrl = QUrl(resolveConferenceUrl(this->singleConference, this->currentConferenceId, this->currentConferenceYear, QString("SINGLE_IMAGE_RESOURCES_URL")));
+
+//            ;
+//    if (this->singleConference) {
+//        confDataUrl = QUrl(SINGLE_IMAGE_RESOURCES_URL);
+//    } else {
+//        // TODO
+//    }
 
     emit subLoadingLabelAvailable(QString(tr("Image Resources")));
 
@@ -143,6 +158,7 @@ void DukeconBackend::handleImagesResourcesFinished() {
     const int httpReturnCode = getHttpReturnCode(reply);
 
     // if the conference data has not changed - there is no need to fetch the speaker images again!
+    // TODO add const for th 304 return code as long as QT it does not provide (QNetworkRequest::IfModifiedSinceHeader)
     if (httpReturnCode == 304) {
         qDebug() << " => http return code for images resources of " << this->currentConferenceId << " was " << httpReturnCode << " nothing changed !";
     } else {
@@ -152,12 +168,12 @@ void DukeconBackend::handleImagesResourcesFinished() {
         persistConferenceResource(dataMap);
     }
 
-    QUrl confDataUrl;
-    if (this->singleConference) {
-        confDataUrl = QUrl(SINGLE_CONF_DATA_URL);
-    } else {
-        // TODO
-    }
+    QUrl confDataUrl = QUrl(resolveConferenceUrl(this->singleConference, this->currentConferenceId, this->currentConferenceYear, QString("SINGLE_CONF_DATA_URL")));
+//    if (this->singleConference) {
+//        confDataUrl = QUrl(SINGLE_CONF_DATA_URL);
+//    } else {
+//        // TODO
+//    }
 
     emit subLoadingLabelAvailable(QString(tr("Conference Data")));
 
@@ -216,12 +232,13 @@ void DukeconBackend::fetchPhotoImages() {
         this->currentPhotoId = photoIds.first();
         photoIds.removeFirst();
 
-        QUrl photoIdUrl;
-        if (this->singleConference) {
-            photoIdUrl = QUrl(SINGLE_IMAGES_BASE_URL + this->currentPhotoId);
-        } else {
-            // TODO
-        }
+        QString basePhotoUrl = resolveConferenceUrl(this->singleConference, this->currentConferenceId, this->currentConferenceYear, QString("SINGLE_IMAGES_BASE_URL"));
+        QUrl photoIdUrl = QUrl(basePhotoUrl + this->currentPhotoId);
+//        if (this->singleConference) {
+//            photoIdUrl = QUrl(SINGLE_IMAGES_BASE_URL + this->currentPhotoId);
+//        } else {
+//            // TODO
+//        }
 
         emit subLoadingLabelAvailable(QString(tr("Speaker Image (%1/%2)"))
                                       .arg(speakerImageCount - photoIds.length())
