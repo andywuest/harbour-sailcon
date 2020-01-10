@@ -6,7 +6,7 @@ import Sailfish.Silica 1.0
 ListItem {
     id: linkItem
 
-    contentHeight: Theme.itemSizeMedium
+    contentHeight: Theme.itemSizeSmall // entry height - also spacing
 
     anchors {
         left: parent.left
@@ -14,8 +14,7 @@ ListItem {
     }
 
     Image {
-        id: cover
-        visible: true// !updating && coverart
+        id: linkImage
 
         anchors {
             left: parent.left
@@ -32,54 +31,18 @@ ListItem {
         source: image
     }
 
-//    Rectangle {
-//        anchors.fill: cover
-//        visible: !updating && !coverart
-//        color: Theme.rgba(Theme.highlightColor, 0.5)
-
-//        clip: true
-
-//        Label {
-//            anchors.centerIn: parent
-
-//            font.pixelSize: parent.height * 0.8
-//            text: title[0]
-//            color: Theme.highlightColor
-//        }
-//    }
-
-//    BusyIndicator {
-//        anchors.centerIn: cover
-//        visible: updating
-//        running: visible
-//    }
-
     Label {
         id: titleLabel
         anchors {
-            left: cover.right
-            // leftMargin: Theme.paddingMedium
+            left: linkImage.right
             leftMargin: Theme.paddingLarge
             rightMargin: Theme.paddingMedium
-//            right: downloadsLabel.left
             verticalCenter: parent.verticalCenter
         }
 
         truncationMode: TruncationMode.Fade
         text: type
-        // color: (newEpisodes || podcastItem.highlighted) ? Theme.highlightColor : Theme.primaryColor
     }
 
-//    Label {
-//        id: downloadsLabel
-//        anchors {
-//            right: parent.right
-//            rightMargin: Theme.paddingMedium
-//            verticalCenter: parent.verticalCenter
-//        }
-
-//        color: titleLabel.color
-//        text: '' // 'downloaded ? downloaded : ''
-//    }
 }
 
