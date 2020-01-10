@@ -152,6 +152,13 @@ Page {
                 conferencesListModel.append(conf)
 
                 conf = {};
+                conf.id = "apex2019"
+                conf.name = "Apex 2019"
+                conf.year = "2019"
+                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                conferencesListModel.append(conf)
+
+                conf = {};
                 conf.id = "javaland2020"
                 conf.name = "JavaLand 2020"
                 conf.year = "2020"
