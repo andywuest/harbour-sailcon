@@ -23,11 +23,10 @@ import "../components"
 // QTBUG-34418
 import "."
 
-
-
 // import "jfs2016.js" as Data
 import "../js/utils2.js" as Utils2
 import "../js/database.js" as Database
+import "../js/constants.js" as Constants
 
 Page {
     id: eventPage
@@ -43,12 +42,12 @@ Page {
     // To enable PullDownMenu, place our content in a SilicaFlickable
     SilicaFlickable {
         anchors {
-            fill: parent;
-            bottomMargin: Theme.paddingMedium;
-        }        
+            fill: parent
+            bottomMargin: Theme.paddingMedium
+        }
 
-//        anchors.fill: parent
-//        anchors.
+        //        anchors.fill: parent
+        //        anchors.
 
         // Tell SilicaFlickable the height of its content.
         contentHeight: column.height
@@ -58,14 +57,14 @@ Page {
         Column {
             id: column
             x: Theme.horizontalPageMargin
-            width: parent.width - 2*x
+            width: parent.width - 2 * x
             spacing: Theme.paddingSmall
             PageHeader {
                 title: qsTr("Selected Talk")
             }
 
             SectionHeader {
-                text: "Talk Data"
+                text: qsTr("Talk Data")
             }
 
             Label {
@@ -92,227 +91,132 @@ Page {
                 font.pixelSize: Theme.fontSizeExtraSmall
             }
 
-
             SectionHeader {
-                text: "Abstract"
+                text: qsTr("Abstract")
             }
 
             Label {
                 id: labelTitle
-//                x: Theme.horizontalPageMargin
-                width: parent.width// - 2*x
+                //                x: Theme.horizontalPageMargin
+                width: parent.width // - 2*x
 
                 text: eventTitle
                 font.pixelSize: Theme.fontSizeMedium
                 wrapMode: Text.Wrap
-//                onSelectedIndexSignal:  console.log("signal received : " + index)
+                //                onSelectedIndexSignal:  console.log("signal received : " + index)
 
-                    //eventLabel.text
-//                color: Theme.secondaryHighlightColor
-//                font.pixelSize: Theme.fontSizeExtraLarge
+                //eventLabel.text
+                //                color: Theme.secondaryHighlightColor
+                //                font.pixelSize: Theme.fontSizeExtraLarge
             }
 
-            // TODO hier noch ein summary label mit uhrzeit location einfuegen
 
+            // TODO hier noch ein summary label mit uhrzeit location einfuegen
             Label {
                 id: labelAbstract
-//                x: Theme.horizontalPageMargin
-//                width: parent.width - 2*x
-                width: parent.width// - 2*x
+                //                x: Theme.horizontalPageMargin
+                //                width: parent.width - 2*x
+                width: parent.width // - 2*x
                 text: eventAbstractText
                 font.pixelSize: Theme.fontSizeExtraSmall
                 wrapMode: Text.Wrap
             }
 
             SectionHeader {
-                text: "Speaker"
+                text: qsTr("Speakers")
             }
 
-                Speaker {
-                    id: speaker1
-                    visible: false;
-                    width: parent.width// - 2*x
+            // TODO dynamic amount of speaker - not just two fixed ones
+            Speaker {
+                id: speaker1
+                visible: false
+                width: parent.width
+            }
 
-                    labelSpeakerName: "text1"
-                    labelSpeakerBio: "bio1"
-                    labelSpeakerCompany: "company1"
-                    imageSpeaker: ""
-                }
-
-
-                Speaker {
-                    id: speaker2
-                    visible: false;
-
-                    labelSpeakerName: "text2"
-                    labelSpeakerBio: "bio2"
-                    labelSpeakerCompany: "company2"
-                    imageSpeaker: ""
-                }
-
+            Speaker {
+                id: speaker2
+                visible: false
+                width: parent.width
+            }
 
             Button {
                 text: "Show settings"
-//                anchors {
-//                    top: column.bottom
-//                    horizontalCenter: parent.horizontalCenter
-//                    margins: Theme.paddingMedium
-//                }
+                //                anchors {
+                //                    top: column.bottom
+                //                    horizontalCenter: parent.horizontalCenter
+                //                    margins: Theme.paddingMedium
+                //                }
                 // horizontalCenter: parent.horizontalCenter
-                onClicked: pageStack.push(Qt.resolvedUrl("TalkSettings.qml"), { eventId: eventId})
+                onClicked: pageStack.push(Qt.resolvedUrl("TalkSettings.qml"), {
+                                              eventId: eventId
+                                          })
             }
-
-
-            // TODO show multiple speaker
-
-            /*
-            Label {
-                id: labelSpeaker
-                x: Theme.horizontalPageMargin
-
-                width: parent.width - 2*x
-                text: eventSpeaker
-                font.pixelSize: Theme.fontSizeSmall
-                wrapMode: Text.Wrap
-            }
-
-            Image {
-                id:  imageSpeaker
-                x: Theme.horizontalPageMargin
-                 // source: "data:image/gif;base64,R0lGODlhEAAQAMQAAORHHOVSKudfOulrSOp3WOyDZu6QdvCchPGolfO0o/XBs/fNwfjZ0frl3/zy7////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABAALAAAAAAQABAAAAVVICSOZGlCQAosJ6mu7fiyZeKqNKToQGDsM8hBADgUXoGAiqhSvp5QAnQKGIgUhwFUYLCVDFCrKUE1lBavAViFIDlTImbKC5Gm2hB0SlBCBMQiB0UjIQA7"
-              //   source : "data:image/png;base64," + imageData
-            }
-            */
-
         }
 
+        VerticalScrollDecorator {
+        }
 
-        VerticalScrollDecorator {}
+        function populateSpeaker(manager, targetSpeaker, conferenceSpeaker, event) {
+            targetSpeaker.labelSpeakerName = conferenceSpeaker.name
+            targetSpeaker.labelSpeakerCompany = manager.trimToEmpty(
+                        conferenceSpeaker.company)
+            targetSpeaker.labelSpeakerBio = manager.trimToEmpty(
+                        conferenceSpeaker.bio)
+            if (conferenceSpeaker.photoId !== undefined) {
+                var img = Database.loadConferenceImage(
+                            GlobalDataModel.conferenceJsonData.id,
+                            conferenceSpeaker.photoId).content
+                if (img !== undefined) {
+                    targetSpeaker.imageSpeaker = img
+                } else {
+                    targetSpeaker.imageSpeaker = targetSpeaker.defaultSpeakerImage
+                }
+            } else {
+                targetSpeaker.imageSpeaker = targetSpeaker.defaultSpeakerImage
+            }
+
+            // TODO isWebLinkPresent() methode im speaker kann entferntn werden !!! im ts code
+            Constants.SUPPORTED_SOCIAL_TYPES.forEach(function (element) {
+                targetSpeaker.addSocialLink(element, conferenceSpeaker[element])
+            })
+
+            Constants.SUPPORTED_DOCUMENT_TYPES.forEach(function (element) {
+                targetSpeaker.addDocumentLink(element, event.documents[element])
+            })
+
+            targetSpeaker.visible = true
+        }
 
         Component.onCompleted: {
-            var manager = Utils2.createConferenceManager(GlobalDataModel.conferenceJsonData);
-            var event = manager.getEventById(eventId);
-            var speakers = manager.getSpeakersForEvent(eventId);
+            var manager = Utils2.createConferenceManager(
+                        GlobalDataModel.conferenceJsonData)
+            var event = manager.getEventById(eventId)
+            var speakers = manager.getSpeakersForEvent(eventId)
 
-//            var event = manager.getEventById(eventId);
-//            var speakers = manager.getSpeakerByIds(event.speakerIds);
-            console.log("talk: event : " + event.title);
-            eventTitle = event.title;
-            eventAbstractText = event.abstractText;
-            var startTime = manager.convertToDate(event.start);
-//            var dateTime2 = new Date(2001, 5, 21, 14, 13, 09)
+            console.log("talk: event : " + event.title)
+            eventTitle = event.title
+            eventAbstractText = event.abstractText
+            var startTime = manager.convertToDate(event.start)
+            //            var dateTime2 = new Date(2001, 5, 21, 14, 13, 09)
             // locale name : Qt.locale().name
             // eventTalkTime = qsTr("Starting time: ") + Qt.formatDateTime(dateTime, qsTr('dd.MM.yyyy hh:mm'));
             // eventTalkTime = qsTr("Starting time: ") + Qt.formatDateTime(dateTime, qsTr('dd MMM yyyy, hh:mm'));
-            eventTalkTime = qsTr("Starting time: ") + Qt.formatDateTime(startTime, qsTr('dd MMM yyyy, hh:mm'));
-            eventTalkLocation = qsTr("Location: ") + manager.getLocationName(event.locationId);
-            eventTalkAudience = qsTr("Audience: ") + manager.getAudienceName(event.audienceId);
-            eventTalkTrack = qsTr("Track: ") + manager.getTrackName(event.trackId);
-
-            // TODO company can be undefined
-
-            var supportedSocialTypes = ["facebook", "instagram", "linkedin", "pinterest", "twitter", "xing", "youtube"];
-            var supportedDocumentTypes = ["slides", "manuscript", "other"];
+            eventTalkTime = qsTr("Starting time: ") + Qt.formatDateTime(
+                        startTime, qsTr('dd MMM yyyy, hh:mm'))
+            eventTalkLocation = qsTr("Location: ") + manager.getLocationName(
+                        event.locationId)
+            eventTalkAudience = qsTr("Audience: ") + manager.getAudienceName(
+                        event.audienceId)
+            eventTalkTrack = qsTr("Track: ") + manager.getTrackName(
+                        event.trackId)
 
             if (speakers[0] !== undefined) {
-                speaker1.labelSpeakerName = speakers[0].name;
-                speaker1.labelSpeakerCompany = manager.trimToEmpty(speakers[0].company);
-                speaker1.labelSpeakerBio = manager.trimToEmpty(speakers[0].bio);
-                if (speakers[0].photoId !== undefined) {
-                  var img = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, speakers[0].photoId).content
-                  if (img !== undefined)   {
-                    speaker1.imageSpeaker = img;
-                  } else {
-                      speaker1.imageSpeaker = speaker1.defaultSpeakerImage;
-                  }
-                } else {
-                    speaker1.imageSpeaker = speaker1.defaultSpeakerImage;
-                }
-
-                // TODO isWebLinkPresent() methode im speaker kann entferntn werden !!!
-
-//                speaker1.sectionHeaderWebLinks = speakers[0].isWebLinkPresent();
-//                speaker1.labelWebsite = manager.trimToEmpty(speakers[0].website);
-//                speaker1.labelTwitter = manager.trimToEmpty(speakers[0].twitter);
-//                speaker1.labelLinkedin = manager.trimToEmpty(speakers[0].linkedin);
-//                speaker1.labelXing = manager.trimToEmpty(speakers[0].xing);
-
-                supportedSocialTypes.forEach(function(element) {
-                    speaker1.addSocialLink(element, speakers[0][element])
-                });
-
-                supportedDocumentTypes.forEach(function(element) {
-                    speaker1.addDocumentLink(element, event.documents[element])
-                });
-
-
-
-
-                // speaker1.addSocialLink(speakers[0].website);
-//                speaker1.addSocialLink(speakers[0].twitter);
-//                speaker1.addSocialLink(speakers[0].linkedin);
-//                speaker1.addSocialLink(speakers[0].xing);
-//                speaker1.addSocialLink(speakers[0].twitter);
-
-//                speaker1.sectionHeaderDocuments = event.isDocumentsPresent();
-//                speaker1.labelSlides = manager.trimToEmpty(event.documents.slides);
-//                speaker1.labelManuscript = manager.trimToEmpty(event.documents.manuscript);
-//                speaker1.labelOther = manager.trimToEmpty(event.documents.other);
-
-                speaker1.visible = true;
+                populateSpeaker(manager, speaker1, speakers[0], event)
             }
 
             if (speakers[1] !== undefined) {
-                speaker2.labelSpeakerName = speakers[1].name;
-                speaker2.labelSpeakerCompany = manager.trimToEmpty(speakers[1].company);
-                speaker2.labelSpeakerBio = manager.trimToEmpty(speakers[1].bio);
-                if (speakers[1].photoId !== undefined) {
-                   speaker2.imageSpeaker = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, speakers[1].photoId).content;
-                } else {
-                    speaker2.imageSpeaker = speaker2.defaultSpeakerImage;
-                }
-
-                supportedSocialTypes.forEach(function(element) {
-                    speaker2.addSocialLink(element, speakers[1][element])
-                });
-
-                supportedDocumentTypes.forEach(function(element) {
-                    speaker2.addDocumentLink(element, event.documents[element])
-                });
-
-//                speaker2.sectionHeaderWebLinks = speakers[1].isWebLinkPresent();
-//                speaker2.labelWebsite = manager.trimToEmpty(speakers[1].website);
-//                speaker2.labelTwitter = manager.trimToEmpty(speakers[1].twitter);
-//                speaker2.labelLinkedin = manager.trimToEmpty(speakers[1].linkedin);
-//                speaker2.labelXing = manager.trimToEmpty(speakers[1].xing);
-
-//                speaker2.sectionHeaderDocuments = event.isDocumentsPresent();
-//                speaker2.labelSlides = manager.trimToEmpty(event.documents.slides);
-//                speaker2.labelManuscript = manager.trimToEmpty(event.documents.manuscript);
-//                speaker2.labelOther = manager.trimToEmpty(event.documents.other);
-
-                speaker2.visible = true;
+                populateSpeaker(manager, speaker0, speakers[1], event)
             }
-
-
-
-
-//            var speakerText = ""
-//            for (var i = 0; i < speakers.length; i++) {
-//                speakerText += speakers[i].name + (speakers[i].company !== undefined ? " (" + speakers[i].company + ")" : "");
-//                speakerText += "\n\n" + speakers[i].bio;
-//                speakerText += "\n\n";
-//            }
-
-//            console.log("speaker Text : " + speakerText);
-
-//            var image = Database.loadConferenceImage(GlobalDataModel.conferenceJsonData.id, speakers[0].photoId).content;
-//            imageSpeaker.source = image;
-
-//            eventSpeaker = speakerText;
         }
-
     }
-
-
 }
