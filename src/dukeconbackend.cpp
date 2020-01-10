@@ -77,6 +77,8 @@ QString DukeconBackend::resolveConferenceUrl(const bool singleConference, const 
         QString conferenceKey = "";
         if (conferenceId.startsWith("javaland")) {
             conferenceKey = "javaland";
+        } else if (conferenceId.startsWith("apex")) {
+            conferenceKey = "apex";
         }
 
         QString url = CONFERENCES_MAP[conferenceKey][urlType].arg(year);

@@ -32,8 +32,19 @@ const QMap<QString, QMap<QString, QString>> CONFERENCES_MAP {
             {"SINGLE_INIT_URL", ""}
         }
     },
-
+    {"apex",
+        {
+            {"SINGLE_INIT_URL", "https://programm.doag.org/apex/%1/rest/init.json"},
+            {"SINGLE_IMAGE_RESOURCES_URL", "https://programm.doag.org/apex/%1/rest/image-resources.json"},
+            {"SINGLE_CONF_DATA_URL", "https://programm.doag.org/apex/%1/rest/conferences/apex%1"},
+            {"SINGLE_IMAGES_BASE_URL", "https://programm.doag.org/apex/%1/rest/speaker/images/"}
+        }
+    },
 };
+
+
+
+
 
 class DukeconBackend : public QObject {
     Q_OBJECT
