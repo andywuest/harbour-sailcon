@@ -86,6 +86,7 @@ function getETagForConferenceId(conferenceId) {
 }
 
 // persists the conference data - either insert or update
+// TODO check if this is still needed - looks obsoetel
 function persistConferenceData(data, newContent, eTag) {
     var result = ""
     try {
