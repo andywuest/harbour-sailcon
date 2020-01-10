@@ -70,9 +70,15 @@ DISTFILES += \
     qml/pages/GlobalDataModel.qml \
     qml/pages/qmldir \
     qml/pages/TODO.txt \
-    images/j.png \
     images/UnknownUser.png \
+    images/social_facebook.svg \
+    images/social_instagram.svg \
+    images/social_linkedin.svg \
+    images/social_pinterest.svg \
+    images/social_twitter.svg \
     images/social_xing.svg \
+    images/social_youtube.svg \
+    images/icon-launcher-browser.svg \
     qml/components/thirdparty/AppNotification.qml \
     qml/components/thirdparty/AppNotificationItem.qml \
     qml/components/thirdparty/LabelText.qml \
