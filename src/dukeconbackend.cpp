@@ -127,18 +127,10 @@ void DukeconBackend::handleInitDataFinished() {
     dataMap.insert("year", rootObject["year"].toString());
     dataMap.insert("startDate", rootObject["startDate"].toString());
     dataMap.insert("endDate", rootObject["endDate"].toString());
-    dataMap.insert("state", "ACTIVE");
 
     persistConferenceData(dataMap);
 
     QUrl confDataUrl = QUrl(resolveConferenceUrl(this->singleConference, this->currentConferenceId, this->currentConferenceYear, QString("SINGLE_IMAGE_RESOURCES_URL")));
-
-//            ;
-//    if (this->singleConference) {
-//        confDataUrl = QUrl(SINGLE_IMAGE_RESOURCES_URL);
-//    } else {
-//        // TODO
-//    }
 
     emit subLoadingLabelAvailable(QString(tr("Image Resources")));
 
@@ -171,11 +163,6 @@ void DukeconBackend::handleImagesResourcesFinished() {
     }
 
     QUrl confDataUrl = QUrl(resolveConferenceUrl(this->singleConference, this->currentConferenceId, this->currentConferenceYear, QString("SINGLE_CONF_DATA_URL")));
-//    if (this->singleConference) {
-//        confDataUrl = QUrl(SINGLE_CONF_DATA_URL);
-//    } else {
-//        // TODO
-//    }
 
     emit subLoadingLabelAvailable(QString(tr("Conference Data")));
 
@@ -236,11 +223,6 @@ void DukeconBackend::fetchPhotoImages() {
 
         QString basePhotoUrl = resolveConferenceUrl(this->singleConference, this->currentConferenceId, this->currentConferenceYear, QString("SINGLE_IMAGES_BASE_URL"));
         QUrl photoIdUrl = QUrl(basePhotoUrl + this->currentPhotoId);
-//        if (this->singleConference) {
-//            photoIdUrl = QUrl(SINGLE_IMAGES_BASE_URL + this->currentPhotoId);
-//        } else {
-//            // TODO
-//        }
 
         emit subLoadingLabelAvailable(QString(tr("Speaker Image (%1/%2)"))
                                       .arg(speakerImageCount - photoIds.length())
@@ -428,6 +410,36 @@ void DukeconBackend::persistConferenceData(QMap<QString, QString> dataMap) {
     initializeDatabase();
 
     if(db.open()){
+        // TODO move to seprate method
+        QSqlQuery queryCountConferences;
+        queryCountConferences.prepare("SELECT COUNT(*) as count FROM conference");
+        if (!queryCountConferences.exec()) {
+            qDebug() << "query failed" << queryCountConferences.lastError();
+        }
+
+        if (queryCountConferences.next()) {
+            int numberOfPersistedConferences = queryCountConferences.value("count").toInt();
+            qDebug() << "already persisted " << numberOfPersistedConferences << " conferences !";
+            if (numberOfPersistedConferences == 0) {
+                dataMap.insert("state", "ACTIVE");
+            } else {
+                dataMap.insert("state", "INACTIVE");
+            }
+        }
+
+        // TODO move to seprate method
+        QSqlQuery queryConferencesLastState;
+        queryConferencesLastState.prepare("SELECT state FROM conference WHERE id = :id");
+        queryConferencesLastState.bindValue(":id", dataMap["id"]);
+        if (!queryConferencesLastState.exec()) {
+            qDebug() << "query failed" << queryConferencesLastState.lastError();
+        }
+
+        if (queryConferencesLastState.next()) {
+            qDebug() << "conference already existed - keeping state";
+            dataMap.insert("state", queryConferencesLastState.value("state").toString());
+        }
+
         QSqlQuery query;
         query.prepare(QString("INSERT OR REPLACE INTO conference(id, name, year, url, homeUrl, startDate, endDate, state, content, etag) ")
                       + QString("VALUES (:id, :name, :year, :url, :homeUrl, :startDate, :endDate, :state, :content, :etag)"));
@@ -447,17 +459,6 @@ void DukeconBackend::persistConferenceData(QMap<QString, QString> dataMap) {
 
         db.commit();
         db.close();
-
-        //        QSqlQueryModel* modal = new QSqlQueryModel();
-        //        QSqlQuery *query = new QSqlQuery(db);
-        //        query->prepare("Select id, name FROM conference");
-        //        query->exec();
-
-        //        while (query->next()) {
-        //            QString id = query->value(0).toString();
-        //            QString name = query->value(1).toString();
-        //            qDebug() << name << id;
-        //        }
     } else{
         qDebug() << "Cant open DB";
     }
