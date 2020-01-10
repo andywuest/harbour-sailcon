@@ -1,5 +1,24 @@
 .pragma library
 
+// supported links and documents from the conference json - which we display in the speaker component
+var SUPPORTED_SOCIAL_TYPES = ["website", "facebook", "instagram", "linkedin", "pinterest", "twitter", "xing", "youtube"];
+var SUPPORTED_DOCUMENT_TYPES = ["slides", "manuscript", "other"];
+
+var DOCUMENT_NAME_MAP = [];
+DOCUMENT_NAME_MAP['slides'] = qsTr('Slides');
+DOCUMENT_NAME_MAP['other'] = qsTr('Other document');
+
+var LINK_NAME_MAP = [];
+LINK_NAME_MAP['website'] = qsTr('Website');
+LINK_NAME_MAP['facebook'] = qsTr('Facebook');
+LINK_NAME_MAP['instagram'] = qsTr('Instagram');
+LINK_NAME_MAP['linkedin'] = qsTr('Linkedin');
+LINK_NAME_MAP['pinterest'] = qsTr('Pinterest');
+LINK_NAME_MAP['twitter'] = qsTr('Twitter');
+LINK_NAME_MAP['xing'] = qsTr('Xing');
+LINK_NAME_MAP['youtube'] = qsTr('Youtube');
+
+
 var loggingEnabled = true;
 var CONFERENCE_INACTIVE = 'INACTIVE';
 var CONFERENCE_ACTIVE = 'ACTIVE';
@@ -22,6 +41,7 @@ var SINGLE = true;
 // you need to add you local ip address to make sure the vb image can access the server
 //var CONFERENCES_URL = 'http://192.168.123.128:8083/rest/conferences';
 //var SINGLE = true;
+
 
 //FROM https://cdnjs.cloudflare.com/ajax/libs/Base64/1.0.1/base64.js
 //function base64Encode (input) {
