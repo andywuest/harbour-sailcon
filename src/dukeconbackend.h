@@ -21,15 +21,23 @@ const char SINGLE_IMAGES_BASE_URL[] = "https://programm.javaland.eu/2020/rest/sp
 const QMap<QString, QMap<QString, QString>> CONFERENCES_MAP {
     {"javaland",
         {
-            {"SINGLE_INIT_URL", "https://programm.javaland.eu/%1/rest/init.json"},
+            {"SINGLE_INIT_URL",            "https://programm.javaland.eu/%1/rest/init.json"},
             {"SINGLE_IMAGE_RESOURCES_URL", "https://programm.javaland.eu/%1/rest/image-resources.json"},
-            {"SINGLE_CONF_DATA_URL", "https://programm.javaland.eu/%1/rest/conferences/javaland%1"},
-            {"SINGLE_IMAGES_BASE_URL", "https://programm.javaland.eu/%1/rest/speaker/images/"}
+            {"SINGLE_CONF_DATA_URL",       "https://programm.javaland.eu/%1/rest/conferences/javaland%1"},
+            {"SINGLE_IMAGES_BASE_URL",     "https://programm.javaland.eu/%1/rest/speaker/images/"}
         }
     },
     {"doag",
         {
             {"SINGLE_INIT_URL", ""}
+        }
+    },
+    {"acna",
+        {
+            {"SINGLE_INIT_URL",            "https://www.apachecon.com/%1/s/rest/init.json"},
+            {"SINGLE_IMAGE_RESOURCES_URL", "https://www.apachecon.com/%1/s/rest/image-resources.json"},
+            {"SINGLE_CONF_DATA_URL",       "https://www.apachecon.com/%1/s/rest/conferences/apex%1"},
+            {"SINGLE_IMAGES_BASE_URL",     "https://www.apachecon.com/%1/s/rest/speaker/images/"}
         }
     },
     {"apex",
