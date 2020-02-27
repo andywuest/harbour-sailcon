@@ -23,17 +23,6 @@ Column {
         }
     }
 
-    function addDocumentLink(documentType, documentUrl) {
-        if (documentUrl) {
-            console.log("document link added " + documentUrl)
-            documentLinkListModel.append({
-                                             type: Constants.DOCUMENT_NAME_MAP[documentType],
-                                             url: documentUrl,
-                                             image: "image://theme/icon-m-file-pdf"
-                                         })
-        }
-    }
-
     //     property variant speakerModel;
     property string defaultSpeakerImage: "../../images/UnknownUser.png"
 
@@ -48,10 +37,6 @@ Column {
 
     ListModel {
         id: socialLinkListModel
-    }
-
-    ListModel {
-        id: documentLinkListModel
     }
 
     Row {
@@ -117,27 +102,6 @@ Column {
             onClicked: {
                 console.log("url : " + socialLinkListModel.get(index).url)
                 Qt.openUrlExternally(socialLinkListModel.get(index).url)
-            }
-        }
-    }
-
-    SectionHeader {
-        id: sectionHeaderDocuments
-        visible: documentLinkListModel.count > 0
-        text: qsTr("Documents")
-        font.pixelSize: Theme.fontSizeExtraSmall
-    }
-
-    Repeater {
-        id: documentLinkList
-        anchors.fill: parent
-
-        model: documentLinkListModel
-
-        delegate: LinkItem {
-            onClicked: {
-                console.log("url : " + documentLinkListModel.get(index).url)
-                Qt.openUrlExternally(documentLinkListModel.get(index).url)
             }
         }
     }
