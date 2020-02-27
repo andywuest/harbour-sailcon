@@ -145,16 +145,12 @@ Page {
             var persistedConferenceIds = Database.getPersistedConferenceIds();
             if (Constants.SINGLE) {
                 var conf = {};
-                conf.id = "javaland2019"
-                conf.name = "JavaLand 2019"
-                conf.year = "2019"
-                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
-                conferencesListModel.append(conf)
 
+                // 2020
                 conf = {};
                 conf.id = "apex2019"
-                conf.name = "Apex 2019"
-                conf.year = "2019"
+                conf.name = "Apex Connect 2020"
+                conf.year = "2020"
                 conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
                 conferencesListModel.append(conf)
 
@@ -162,6 +158,49 @@ Page {
                 conf.id = "javaland2020"
                 conf.name = "JavaLand 2020"
                 conf.year = "2020"
+                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                conferencesListModel.append(conf)
+
+                // 2019
+                conf = {};
+                conf.id = "apex2019"
+                conf.name = "Apex Connect 2019"
+                conf.year = "2019"
+                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                conferencesListModel.append(conf)
+
+                conf.id = "javaland2019"
+                conf.name = "JavaLand 2019"
+                conf.year = "2019"
+                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                conferencesListModel.append(conf)
+
+                //                conf = {};
+                //                conf.id = "acna19"
+                //                conf.name = "ApacheCon NA 2019"
+                //                conf.year = "2019"
+                //                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                //                conferencesListModel.append(conf)
+
+
+                // 2018
+                conf.id = "javaland2018"
+                conf.name = "JavaLand 2018"
+                conf.year = "2018"
+                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                conferencesListModel.append(conf)
+
+                // 2017
+                conf.id = "javaland2017"
+                conf.name = "JavaLand 2017"
+                conf.year = "2017"
+                conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
+                conferencesListModel.append(conf)
+
+                // 2016
+                conf.id = "javaland2016"
+                conf.name = "JavaLand 2016"
+                conf.year = "2016"
                 conf.isPersisted = (persistedConferenceIds.indexOf(conf.id) > -1);
                 conferencesListModel.append(conf)
 
