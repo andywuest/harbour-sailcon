@@ -23,6 +23,8 @@ import "../components"
 // QTBUG-34418
 import "."
 
+import "../components/thirdparty"
+
 // import "jfs2016.js" as Data
 import "../js/utils2.js" as Utils2
 import "../js/database.js" as Database
@@ -38,6 +40,21 @@ Page {
     property string eventTalkAudience
     property string eventTalkTime
     property string eventTalkTrack
+
+    function addDocumentLink(documentType, documentUrl) {
+        if (documentUrl) {
+            console.log("document link added " + documentUrl)
+            documentLinkListModel.append({
+                                             type: Constants.DOCUMENT_NAME_MAP[documentType],
+                                             url: documentUrl,
+                                             image: "image://theme/icon-m-file-pdf"
+                                         });
+        }
+    }
+
+    ListModel {
+        id: documentLinkListModel
+    }
 
     // To enable PullDownMenu, place our content in a SilicaFlickable
     SilicaFlickable {
@@ -123,6 +140,27 @@ Page {
             }
 
             SectionHeader {
+                id: sectionHeaderDocuments
+                visible: documentLinkListModel.count > 0
+                text: qsTr("Documents")
+                font.pixelSize: Theme.fontSizeExtraSmall
+            }
+
+            Repeater {
+                id: documentLinkList
+                anchors.fill: parent
+
+                model: documentLinkListModel
+
+                delegate: LinkItem {
+                    onClicked: {
+                        console.log("url : " + documentLinkListModel.get(index).url)
+                        Qt.openUrlExternally(documentLinkListModel.get(index).url)
+                    }
+                }
+            }
+
+            SectionHeader {
                 text: qsTr("Speakers")
             }
 
@@ -156,7 +194,7 @@ Page {
         VerticalScrollDecorator {
         }
 
-        function populateSpeaker(manager, targetSpeaker, conferenceSpeaker, event) {
+        function populateSpeaker(manager, targetSpeaker, conferenceSpeaker) {
             targetSpeaker.labelSpeakerName = conferenceSpeaker.name
             targetSpeaker.labelSpeakerCompany = manager.trimToEmpty(
                         conferenceSpeaker.company)
@@ -178,10 +216,6 @@ Page {
             // TODO isWebLinkPresent() methode im speaker kann entferntn werden !!! im ts code
             Constants.SUPPORTED_SOCIAL_TYPES.forEach(function (element) {
                 targetSpeaker.addSocialLink(element, conferenceSpeaker[element])
-            })
-
-            Constants.SUPPORTED_DOCUMENT_TYPES.forEach(function (element) {
-                targetSpeaker.addDocumentLink(element, event.documents[element])
             })
 
             targetSpeaker.visible = true
@@ -209,14 +243,21 @@ Page {
                         event.audienceId)
             eventTalkTrack = qsTr("Track: ") + manager.getTrackName(
                         event.trackId)
+            // TODO language
 
             if (speakers[0] !== undefined) {
-                populateSpeaker(manager, speaker1, speakers[0], event)
+                populateSpeaker(manager, speaker1, speakers[0])
             }
 
             if (speakers[1] !== undefined) {
-                populateSpeaker(manager, speaker0, speakers[1], event)
+                populateSpeaker(manager, speaker2, speakers[1])
             }
+
+            Constants.SUPPORTED_DOCUMENT_TYPES.forEach(function (element) {
+                eventPage.addDocumentLink(element, event.documents[element])
+            })
+
+
         }
     }
 }
