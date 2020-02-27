@@ -191,7 +191,7 @@ Page {
                 onClicked: {
                     var selectedItem = listView.model.get(index)
                     console.log("Clicked " + index)
-                    console.log("name : " + selectedItem.name)
+                    console.log("id : " + selectedItem.id)
                     var manager = Utils2.createConferenceManager(
                                 GlobalDataModel.conferenceJsonData)
                     var isSingleDayConference = manager.isSingleDayConference()
@@ -217,7 +217,7 @@ Page {
                     ContextMenu {
                         visible: (listView.model.get(index) !== undefined
                                   && "noConf" !== listView.model.get(
-                                      index).name)
+                                      index).id)
                         MenuItem {
                             text: "Remove conference"
                             onClicked: deleteConference(index)
@@ -225,7 +225,7 @@ Page {
                         MenuItem {
                             visible: (listView.model.get(index) !== undefined
                                       && "noConf" !== listView.model.get(
-                                          index).name && listView.model.get(
+                                          index).id && listView.model.get(
                                           index).state === Constants.CONFERENCE_INACTIVE)
                             text: "Set as Active"
                             onClicked: activateConference(index)
@@ -233,7 +233,7 @@ Page {
                         MenuItem {
                             visible: (listView.model.get(index) !== undefined
                                       && "noConf" !== listView.model.get(
-                                          index).name && listView.model.get(
+                                          index).id && listView.model.get(
                                           index).state === Constants.CONFERENCE_ACTIVE)
                             text: "Unset as Active"
                             onClicked: deactivateAllConferences()
@@ -261,14 +261,14 @@ Page {
 //                }
 
                 function activateConference(index) {
-                    Database.activateConferenceInDatabase(listView.model.get(index).name)
+                    Database.activateConferenceInDatabase(listView.model.get(index).id)
                     flickable.setActiveConferenceInGlobalModel();
                     flickable.reloadModelFromDatabase(listView.model)
                 }
 
                 function deleteConference(index) {
                     console.log("deleting the attribute with index " + index)
-                    Database.deleteConferenceFromDatabase(listView.model.get(index).name)
+                    Database.deleteConferenceFromDatabase(listView.model.get(index).id)
                     flickable.reloadModelFromDatabase(listView.model)
                 }
 
@@ -377,7 +377,7 @@ Page {
                 var db = Database.getOpenDatabase()
                 db.transaction(function (tx) {
                     var results = tx.executeSql(
-                                'SELECT id,name,year,url,homeUrl,startDate,endDate,state,content FROM conference order by state desc, name asc')
+                                'SELECT id,name,year,url,homeUrl,startDate,endDate,state,content FROM conference order by state asc, name asc')
                     var hasSelected = false
 
 
@@ -388,6 +388,7 @@ Page {
 
                         var confId = row.id
                         var confName = row.name
+                        var confYear = row.year
                         var confState = row.state
                         var stateLabel = (confState !== Constants.CONFERENCE_INACTIVE ? qsTr("active conference") : qsTr(
                                                                 "available conferences"))
@@ -396,7 +397,8 @@ Page {
                         }
 
                         model.append({
-                                         name: confId,
+                                         id: confId,
+                                         year: confYear,
                                          label: confName,
                                          state: confState,
                                          stateLabel: stateLabel
@@ -406,9 +408,10 @@ Page {
                     console.log("selected ? : " + hasSelected)
                     if (!hasSelected) {
                         model.insert(0, {
-                                         name: "noConf",
+                                         id: "noConf",
                                          label: qsTr(
                                                     "please select conference"),
+                                         year: "",
                                          state: Constants.CONFERENCE_ACTIVE,
                                          stateLabel: "active conference"
                                      })
