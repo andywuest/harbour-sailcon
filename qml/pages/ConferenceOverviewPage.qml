@@ -247,7 +247,8 @@ Page {
                 }
 
                 function deactivateAllConferences() {
-                    flickable.activateConferenceInDatabase()
+                    Database.activateConferenceInDatabase()
+                    flickable.setActiveConferenceInGlobalModel();
                     flickable.reloadModelFromDatabase(listView.model)
                 }
 
@@ -260,7 +261,8 @@ Page {
 //                }
 
                 function activateConference(index) {
-                    flickable.activateConferenceInDatabase(listView.model.get(index).name)
+                    Database.activateConferenceInDatabase(listView.model.get(index).name)
+                    flickable.setActiveConferenceInGlobalModel();
                     flickable.reloadModelFromDatabase(listView.model)
                 }
 
@@ -329,44 +331,44 @@ Page {
             }
         }
 
-        function activateConferenceInDatabase(conferenceId) {
-            try {
-                var db = Database.getOpenDatabase()
-                db.transaction(function (tx) {
-                    console.log("resetting all conference states to inactive !")
-                    var result = tx.executeSql(
-                                'UPDATE conference SET state = ?',
-                                [Constants.CONFERENCE_INACTIVE])
+//        function activateConferenceInDatabase(conferenceId) {
+//            try {
+//                var db = Database.getOpenDatabase()
+//                db.transaction(function (tx) {
+//                    console.log("resetting all conference states to inactive !")
+//                    var result = tx.executeSql(
+//                                'UPDATE conference SET state = ?',
+//                                [Constants.CONFERENCE_INACTIVE])
 
-                    if (conferenceId !== undefined) {
-                        console.log("set conference active with name : " + conferenceId)
-                        tx.executeSql(
-                                    'UPDATE conference SET state = ? WHERE id = ?',
-                                    [Constants.CONFERENCE_ACTIVE, conferenceId])
-                    }
-                })
+//                    if (conferenceId !== undefined) {
+//                        console.log("set conference active with name : " + conferenceId)
+//                        tx.executeSql(
+//                                    'UPDATE conference SET state = ? WHERE id = ?',
+//                                    [Constants.CONFERENCE_ACTIVE, conferenceId])
+//                    }
+//                })
 
-                setActiveConferenceInGlobalModel()
-            } catch (err) {
-                console.log("Error activating conference in database: " + err)
-            }
+//                setActiveConferenceInGlobalModel()
+//            } catch (err) {
+//                console.log("Error activating conference in database: " + err)
+//            }
 
-        }
+//        }
 
-        function deleteConferenceFromDatabase(conferenceId) {
-            try {
-                var db = Database.getOpenDatabase()
-                db.transaction(function (tx) {
-                    var result = tx.executeSql(
-                                'DELETE FROM conference WHERE id = ?',
-                                [conferenceId])
-                    console.log("deleted conference with id : " + conferenceId)
-                })
-            } catch (err) {
-                console.log("Error deleting conference in database: " + err)
-            }
+//        function deleteConferenceFromDatabase(conferenceId) {
+//            try {
+//                var db = Database.getOpenDatabase()
+//                db.transaction(function (tx) {
+//                    var result = tx.executeSql(
+//                                'DELETE FROM conference WHERE id = ?',
+//                                [conferenceId])
+//                    console.log("deleted conference with id : " + conferenceId)
+//                })
+//            } catch (err) {
+//                console.log("Error deleting conference in database: " + err)
+//            }
 
-        }
+//        }
 
         function reloadModelFromDatabase(model) {
             model.clear()

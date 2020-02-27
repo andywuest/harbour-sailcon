@@ -117,6 +117,28 @@ function persistConferenceData(data, newContent, eTag) {
     return result
 }
 
+function activateConferenceInDatabase(conferenceId) {
+    try {
+        var db = Database.getOpenDatabase()
+        db.transaction(function (tx) {
+            console.log("resetting all conference states to inactive !")
+            var result = tx.executeSql(
+                        'UPDATE conference SET state = ?',
+                        [Constants.CONFERENCE_INACTIVE])
+
+            if (conferenceId !== undefined) {
+                console.log("set conference active with name : " + conferenceId)
+                tx.executeSql(
+                            'UPDATE conference SET state = ? WHERE id = ?',
+                            [Constants.CONFERENCE_ACTIVE, conferenceId])
+            }
+        })
+    } catch (err) {
+        console.log("Error activating conference in database: " + err)
+    }
+
+}
+
 function deleteConferenceFromDatabase(conferenceId) {
     try {
         var db = Database.getOpenDatabase()
