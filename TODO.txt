@@ -1,0 +1,12 @@
+
++ update on overview does not work (exists after first request - should also check for changed images)
++ configuration to not download speaker images is not implemented
++ add apache Con
++ add view to view all speakers + their talks
++ i18n 
++ add spoken language
++ cleanup
+
+
+
+
